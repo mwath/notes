@@ -1,0 +1,48 @@
+version: "3.6"
+
+x-environment: &env
+  DOMAIN_NAME: ${DOMAIN_NAME}
+  API_DOMAIN_URL: ${API_DOMAIN_URL}
+
+services:
+  db:
+    extends:
+      file: docker-compose.yaml
+      service: db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./api
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --proxy-headers
+    environment:
+      <<: *env
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      db:
+        condition: service_healthy
+
+  caddy:
+    extends:
+      file: docker-compose.yaml
+      service: caddy
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      target: caddy
+    command: caddy run
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      <<: *env
+
+volumes:
+  postgres_data: {}
+  caddy_data: {}
+  caddy_config: {}

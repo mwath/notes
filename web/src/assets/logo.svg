@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <mask id="mask6057" maskUnits="userSpaceOnUse">
+   <g transform="matrix(.51504 0 0 .51504 192.9 -41.122)" fill="#fff" stroke="#000" style="mix-blend-mode:normal">
+    <g transform="matrix(.86603 .5 -.5 .86603 -324.89 -17.634)">
+     <path d="m334.91-47.288a46.615 25.078 0 0 0-46.522 24.075h-0.0929v50.156h93.231v-50.156h-0.0655a46.615 25.078 0 0 0-46.55-24.075z" fill="#fff" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="6.7694"/>
+     <g transform="translate(812.58)" fill="#fff" stroke="#000" stroke-linecap="round">
+      <rect x="-532.71" y="27" width="110.08" height="70.077" fill="#fff" stroke="#000" stroke-linejoin="round" stroke-width="7"/>
+      <g stroke-width="6.9999">
+       <path d="m-519.12 62.038h82.9" fill="#fff" stroke="#000"/>
+       <path d="m-519.12 44.517h82.9" fill="#fff" stroke="#000"/>
+       <path d="m-519.12 79.559h82.9" fill="#fff" stroke="#000"/>
+      </g>
+     </g>
+     <g transform="translate(0,174.79)" fill="#fff" stroke="#000">
+      <g fill="#fff" stroke="#000" stroke-linecap="round" stroke-width="7">
+       <rect x="288.41" y="-77.615" width="93" height="293" fill="#fff" stroke="#000" stroke-linejoin="round"/>
+       <g transform="translate(167.71,43.647)">
+        <path d="m151.7-121.21v292.9" fill="#fff" stroke="#000"/>
+        <path d="m182.7-121.21v292.9" fill="#fff" stroke="#000"/>
+       </g>
+      </g>
+     </g>
+     <path transform="scale(1,-1)" d="m381.41-390.27-93-0.35267 46.806-80.364 23.097 40.358z" fill="#fff" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="7.0003"/>
+     <path transform="scale(1,-1)" d="m348.86-446.77-27.9-0.1058 14.042-24.109 6.9292 12.108z" fill="#fff" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="7"/>
+    </g>
+   </g>
+  </mask>
+ </defs>
+ <rect width="256" height="256" fill="#ace7ff" mask="url(#mask6057)"/>
+ <style type="text/css">.specularity {opacity:0.5;}
+	.high-specularity {opacity:0.75;}
+	.low-specularity {opacity:0.25;}
+	.full-specularity {opacity:1;}
+	.shade{opacity:0.5;}
+	.black {fill:#000000;}
+	.white {fill:#ffffff;}
+	.outline-big {stroke-width:16;stroke:none;opacity:0.;fill:none;}
+	.outline-small {stroke-width:8px;stroke:black;opacity:1;fill:none;}
+	.stroke-highlight {fill:none;stroke:white;opacity:0.3;stroke-width:9px;stroke-linejoin:round;}
+				.base-shadow 	{fill:black;opacity:0.4;}
+	.stroke-aluminium5	{stroke:#555753;}
+	.aluminium1	{fill:#eeeeec;}
+	.aluminium2	{fill:#d3d7cf;}
+	.aluminium3	{fill:#babdb6;}
+	.aluminium4	{fill:#888a85;}
+	.aluminium5	{fill:#555753;}
+	.aluminium6	{fill:#2e3436;}</style>
+</svg>

@@ -1,0 +1,64 @@
+version: "3.6"
+
+x-environment: &env
+  API_DOMAIN_NAME: ${API_DOMAIN_NAME}
+  WEB_DOMAIN_NAME: ${WEB_DOMAIN_NAME}
+  API_BASE_URL: ${API_BASE_URL}
+  HTTPS_PORT: ${HTTPS_PORT:-443}
+  HTTP_PORT: ${HTTP_PORT:-80}
+
+services:
+  db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build: ./api
+    command: uvicorn api.app:app --host 0.0.0.0 --port 8000 --proxy-headers --root-path ${API_BASE_URL} --reload --reload-dir /app/api
+    volumes:
+      - ./api:/app/api:ro
+      - ./api/alembic/versions:/app/api/alembic/versions:rw
+    environment:
+      <<: *env
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}
+      TOKEN_EXPIRE_MINUTES: ${TOKEN_EXPIRE_MINUTES}
+      SECRET_KEY: ${SECRET_KEY}
+      OTP_SECRET: ${OTP_SECRET}
+    depends_on:
+      - db
+      - caddy
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      target: setup
+    command: yarn dev --host
+    volumes:
+      - ./web/src:/app/src:ro
+    environment:
+      <<: *env
+
+  caddy:
+    image: caddy:2-alpine
+    command: caddy run --watch
+    working_dir: /etc/caddy
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./web/caddy/Caddyfile:/etc/caddy/Caddyfile
+    environment:
+      <<: *env
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+
+volumes:
+  postgres_data: {}
+  caddy_data: {}
+  caddy_config: {}
