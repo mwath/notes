@@ -4,6 +4,7 @@ import { env } from "process";
 
 // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
 import vuetify from "vite-plugin-vuetify";
+import path from "path";
 
 const API_BASE_URL = env.API_BASE_URL || "";
 const WEB_BASE_URL = env.WEB_BASE_URL || "";
@@ -29,6 +30,12 @@ export default defineConfig({
       clientPort: parseInt(env.HTTPS_PORT) || 443,
     },
     port: 3000,
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      $: path.resolve(__dirname, "./src/stores"),
+    },
   },
   define: stringify({
     API_DOMAIN_NAME: env.API_DOMAIN_NAME,
