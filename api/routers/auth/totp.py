@@ -9,7 +9,7 @@ __all__ = ["TotpFactory", "verify"]
 TotpFactory: TOTP = TOTP.using(digits=6, issuer=API_DOMAIN_NAME, secrets={"1": OTP_SECRET})
 
 
-def verify(totp: TOTP, code: str, last_counter: int | None) -> int:
+def verify(totp: TOTP, code: str, last_counter: int = None) -> int:
     try:
         return totp.match(code, last_counter=last_counter).counter
     except MalformedTokenError:

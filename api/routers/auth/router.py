@@ -33,9 +33,10 @@ class Create2FA(BaseModel):
 class Code2FA(BaseModel):
     code: Optional[constr(regex=r"^\d{6}$")]  # noqa: F722
 
-    def verify(self, user: UserPass) -> bool:
-        otp = totp.TotpFactory.from_json(user.totp)
-        return totp.verify(otp, self.code, user.totp_counter)
+    async def verify(self, user: UserPass, uri: str = None) -> totp.TOTP:
+        otp = totp.TotpFactory.from_source(uri or user.totp)
+        await user.updateTOTPCounter(totp.verify(otp, self.code, user.totp_counter))
+        return otp
 
 
 class SuccessModel(BaseModel):
@@ -107,9 +108,8 @@ async def enable_2fa(
             "L'authentification à double facteur est déjà activée sur ce compte.",
         )
 
-    otp = totp.TotpFactory.from_uri(data.get("uri"))
-    if totp.verify(otp, twofa.code):
-        # Enable 2FA on this account
+    # Enable 2FA on this account
+    if otp := await twofa.verify(user, uri=data.get("uri")):
         await user.enable_2fa(otp.to_json())
 
 
@@ -121,13 +121,13 @@ async def disable_2fa(twofa: Code2FA, user: UserPass = Depends(is_connected_pass
             "L'authentification à double facteur n'est pas activée sur ce compte.",
         )
 
-    if twofa.verify(user):
+    if await twofa.verify(user):
         # Disable 2FA on this account
         await user.disable_2fa()
 
 
 @router.post("/2fa/verify", response_model=TokenModel)
-async def verify_2fa(twofa: Code2FA, token: str = Depends(oauth2_scheme)):
+async def verify_2fa(response: Response, twofa: Code2FA, token: str = Depends(oauth2_scheme)):
     try:
         req_2fa, username = jwt.decode(token)
         if not req_2fa or (user := await UserPass.get(username)) is None:
@@ -139,5 +139,5 @@ async def verify_2fa(twofa: Code2FA, token: str = Depends(oauth2_scheme)):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    if twofa.verify(user):
-        return login(user)
+    if await twofa.verify(user):
+        return login(response, user)

@@ -14,6 +14,7 @@ users = Table(
     Column("username", String(20), unique=True, nullable=False),
     Column("password", String, nullable=False),
     Column("totp", String, nullable=True),
+    Column("totp_counter", Integer, nullable=True),
 )
 
 
@@ -74,3 +75,7 @@ class UserPass(User, UserCreation):
     async def get(cls, username: str) -> UserPass:
         if user := await db.fetch_one(users.select().where(users.c.username == username)):
             return UserPass(**user)
+
+    async def updateTOTPCounter(self, counter: int | None):
+        self.totp_counter = counter
+        await db.execute(users.update().values(totp_counter=counter).where(users.c.id == self.id))
