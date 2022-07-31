@@ -21,11 +21,24 @@
         </v-btn-toggle>
       </v-col>
     </v-row>
+    <v-row>
+      <v-col>
+        <v-btn
+          color="red-lighten-1"
+          append-icon="mdi-exit-to-app"
+          @click="logout()"
+        >
+          Se déconnecter
+        </v-btn>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
 <script lang="ts" setup>
 import { useThemeStore } from "../stores/theme";
+import { logout as logoutInit } from "../composables/api/auth/logout";
 
 const themeStore = useThemeStore();
+const { load: logout } = logoutInit();
 </script>
