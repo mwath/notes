@@ -1,11 +1,11 @@
 <template>
-    <v-navigation-drawer app permanent>
   <v-app :theme="theme.scheme">
+    <v-navigation-drawer v-if="store.user" app permanent>
       <v-list>
         <v-list-item
           prepend-avatar="https://randomuser.me/api/portraits/men/78.jpg"
-          title="Mitchell Admin"
-          subtitle="mitchell@gmail.com"
+          :title="store.user.username"
+          :subtitle="store.user.email"
         />
       </v-list>
       <v-divider />
@@ -42,7 +42,9 @@
 <script setup lang="ts">
 import { RouterView } from "vue-router";
 import { useThemeStore } from "./stores/theme";
+import { useStore } from "./stores/user";
 
+const store = useStore();
 const theme = useThemeStore();
 const items = [
   { title: "Home", icon: "mdi-home", url: "/" },
