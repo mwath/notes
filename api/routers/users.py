@@ -32,8 +32,8 @@ async def delete_me(twofa: Code2FA, user: UserPass = Depends(is_connected_pass))
     if user.totp is not None:
         if twofa.code is None or not twofa.verify(user):
             raise HTTPException(
-                status.HTTP_401_UNAUTHORIZED,
-                "Un code de double authentification valide est requis pour effecteur cette action",
+                status.HTTP_403_FORBIDDEN,
+                "Un code de double authentification valide est requis pour effectuer cette action",
             )
 
     return await user.delete()
