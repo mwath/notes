@@ -11,7 +11,7 @@
       <v-divider />
       <v-list nav density="compact">
         <v-list-item
-          v-for="item in items"
+          v-for="item in items.filter((i) => !i.bottom)"
           :key="item.title"
           :title="item.title"
           :prepend-icon="item.icon"
@@ -21,10 +21,14 @@
       <v-divider />
 
       <template #append>
-        <v-list>
+        <v-divider />
+        <v-list nav density="compact">
           <v-list-item
-            title="Change Theme"
-            prepend-icon="mdi-theme-light-dark"
+            v-for="item in items.filter((i) => i.bottom)"
+            :key="item.title"
+            :title="item.title"
+            :prepend-icon="item.icon"
+            :to="item.url || `/${item.title.toLowerCase()}`"
           />
         </v-list>
       </template>
@@ -42,9 +46,6 @@ import { useThemeStore } from "./stores/theme";
 const theme = useThemeStore();
 const items = [
   { title: "Home", icon: "mdi-home", url: "/" },
-  { title: "Dashboard", icon: "mdi-view-dashboard" },
-  { title: "Account", icon: "mdi-account" },
-  { title: "Settings", icon: "mdi-cog" },
 ];
 </script>
 
