@@ -1,3 +1,4 @@
+import { createPinia } from "pinia";
 import { createApp } from "vue";
 import App from "./App.vue";
 import vuetify from "./plugins/vuetify";
@@ -8,5 +9,6 @@ import router from "./router";
 loadFonts();
 
 const app = createApp(App);
+const pinia = createPinia();
 
-app.use(vuetify).use(router).mount("#app");
+app.use(vuetify).use(router).use(pinia).mount("#app");
