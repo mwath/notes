@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Home from "./views/Home.vue";
+import Settings from "./views/Settings.vue";
 
 const routes = [
   {
@@ -20,7 +21,7 @@ const routes = [
   {
     path: "/settings",
     name: "Settings",
-    component: Home,
+    component: Settings,
   },
 ];
 

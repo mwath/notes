@@ -46,6 +46,7 @@ import { useThemeStore } from "./stores/theme";
 const theme = useThemeStore();
 const items = [
   { title: "Home", icon: "mdi-home", url: "/" },
+  { title: "Settings", icon: "mdi-cog", bottom: true },
 ];
 </script>
 
