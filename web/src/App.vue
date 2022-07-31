@@ -48,6 +48,8 @@ const store = useStore();
 const theme = useThemeStore();
 const items = [
   { title: "Home", icon: "mdi-home", url: "/" },
+  { title: "New Page", icon: "mdi-plus", url: "/new" },
+  { title: "Search", icon: "mdi-magnify" },
   { title: "Settings", icon: "mdi-cog", bottom: true },
 ];
 </script>
