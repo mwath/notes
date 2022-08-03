@@ -26,7 +26,7 @@ class UserBase(BaseModel):
 class UserCreation(UserBase):
     password: constr()
 
-    async def create(user: "UserCreation") -> User:
+    async def create(user: UserCreation) -> User:
         """
         Create a new user in the database.
         Raise `asyncpg.UniqueViolationError` if the username already exists.
@@ -62,7 +62,7 @@ class User(UserBase):
             return cls(**user)
 
     @classmethod
-    async def get_all(cls, ) -> list[User]:
+    async def get_all(cls) -> list[User]:
         """Return a list of all users"""
         return [cls(**u) for u in await db.fetch_all(users.select())]
 
