@@ -24,13 +24,12 @@ export function me(user?: UserInfo): APIResponse<UserInfo> {
   const error = ref<string>();
 
   async function load() {
-    if (error.value !== undefined) error.value = undefined;
-    if (data.value !== undefined) data.value = undefined;
-
     try {
       let result = await requests.get<UserInfo>("/users/me");
+      error.value = undefined;
       data.value = result.data;
     } catch (err: any) {
+      data.value = undefined;
       error.value = err?.response?.data?.detail || err.message;
     }
   }
