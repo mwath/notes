@@ -3,6 +3,7 @@ import Home from "./views/Home.vue";
 import Login from "./views/Login.vue";
 import Register from "./views/Register.vue";
 import Settings from "./views/Settings.vue";
+import NewPage from "./views/NewPage.vue";
 
 const routes = [
   {
@@ -13,7 +14,7 @@ const routes = [
   {
     path: "/new",
     name: "Create a page",
-    component: Home,
+    component: NewPage,
   },
   {
     path: "/search",
