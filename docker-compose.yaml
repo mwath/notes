@@ -41,6 +41,8 @@ services:
     command: yarn dev --host
     volumes:
       - ./web/src:/app/src:ro
+      - ./web/node_modules:/app/node_modules:ro
+      - /app/node_modules/.vite
     environment:
       <<: *env
 
