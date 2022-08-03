@@ -2,20 +2,20 @@ from __future__ import annotations
 from typing import Optional, Union
 
 from pydantic import BaseModel, EmailStr, constr
-from sqlalchemy import Column, Integer, String, Table, select
+from sqlalchemy import Column, Integer, String, insert, select, delete, update
 
-from .base import db, metadata
+from .base import db, Base
 
-users = Table(
-    "users",
-    metadata,
-    Column("id", Integer, primary_key=True),
-    Column("email", String(320), nullable=False),
-    Column("username", String(20), unique=True, nullable=False),
-    Column("password", String, nullable=False),
-    Column("totp", String, nullable=True),
-    Column("totp_counter", Integer, nullable=True),
-)
+
+class DBUser(Base):
+    __tablename__ = "users"
+
+    id = Column("id", Integer, primary_key=True)
+    email = Column("email", String(320), nullable=False)
+    username = Column("username", String(20), unique=True, nullable=False)
+    password = Column("password", String, nullable=False)
+    totp = Column("totp", String, nullable=True)
+    totp_counter = Column("totp_counter", Integer, nullable=True)
 
 
 class UserBase(BaseModel):
@@ -31,7 +31,7 @@ class UserCreation(UserBase):
         Create a new user in the database.
         Raise `asyncpg.UniqueViolationError` if the username already exists.
         """
-        query = users.insert().values(**user.dict()).returning(users.c.id, users.c.email, users.c.username)
+        query = insert(DBUser).values(**user.dict()).returning(DBUser.id, DBUser.email, DBUser.username)
         return User(**await db.fetch_one(query))
 
 
@@ -39,22 +39,22 @@ class User(UserBase):
     id: int
 
     async def delete(self) -> Optional[User]:
-        if user := await db.fetch_one(users.delete().where(users.c.id == self.id).returning(users)):
+        if user := await db.fetch_one(delete(DBUser).where(DBUser.id == self.id).returning(DBUser)):
             return User(**user)
 
     async def enable_2fa(self, totp: str):
-        await db.execute(users.update().values(totp=totp).where(users.c.id == self.id))
+        await db.execute(update(DBUser).values(totp=totp).where(DBUser.id == self.id))
 
     async def disable_2fa(self):
-        await db.execute(users.update().values(totp=None).where(users.c.id == self.id))
+        await db.execute(update(DBUser).values(totp=None).where(DBUser.id == self.id))
 
     @classmethod
     async def get(cls, username_or_id: Union[int, str]) -> Optional[User]:
-        query = select(users.c.id, users.c.email, users.c.username).select_from(users)
+        query = select(DBUser.id, DBUser.email, DBUser.username).select_from(DBUser)
         if isinstance(username_or_id, int):
-            query = query.where(users.c.id == username_or_id)
+            query = query.where(DBUser.id == username_or_id)
         elif isinstance(username_or_id, str):
-            query = query.where(users.c.username == username_or_id)
+            query = query.where(DBUser.username == username_or_id)
         else:
             raise TypeError(f"must be int or str, not {type(username_or_id)}")
 
@@ -64,7 +64,7 @@ class User(UserBase):
     @classmethod
     async def get_all(cls) -> list[User]:
         """Return a list of all users"""
-        return [cls(**u) for u in await db.fetch_all(users.select())]
+        return [cls(**u) for u in await db.fetch_all(select(DBUser))]
 
 
 class UserPass(User, UserCreation):
@@ -73,9 +73,9 @@ class UserPass(User, UserCreation):
 
     @classmethod
     async def get(cls, username: str) -> UserPass:
-        if user := await db.fetch_one(users.select().where(users.c.username == username)):
+        if user := await db.fetch_one(select(DBUser).where(DBUser.username == username)):
             return UserPass(**user)
 
     async def updateTOTPCounter(self, counter: int | None):
         self.totp_counter = counter
-        await db.execute(users.update().values(totp_counter=counter).where(users.c.id == self.id))
+        await db.execute(update(DBUser).values(totp_counter=counter).where(DBUser.id == self.id))
