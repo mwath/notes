@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.models.base import db
-from api.routers import auth, users
+from api.routers import auth, users, page
 
 app = FastAPI(title="NotaBene API")
 app.add_middleware(
@@ -15,6 +15,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(auth.router)
+app.include_router(page.router)
 app.include_router(users.router)
 
 
