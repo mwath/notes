@@ -19,7 +19,7 @@ import Underline from "@editorjs/underline";
 import Warning from "@editorjs/warning";
 import DragDrop from "editorjs-drag-drop";
 import Undo from "editorjs-undo";
-import EditorJS from "@editorjs/editorjs";
+import EditorJS, { BlockAPI } from "@editorjs/editorjs";
 import { onMounted, onUnmounted, ref } from "vue";
 
 // const props = defineProps<{}>();
@@ -27,7 +27,6 @@ const holder = ref<HTMLElement>();
 const editor = ref<EditorJS>();
 
 onMounted(() => {
-  console.log("mounted");
   editor.value?.destroy();
   editor.value = new EditorJS({
     holder: holder.value,
@@ -82,7 +81,16 @@ onUnmounted(() => {
 }
 </style>
 
-<style lang="css">
+<style lang="scss">
+$surface-hover-light: rgba(
+  var(--v-theme-surface-variant),
+  calc(0.04 * var(--v-theme-overlay-multiplier))
+);
+$surface-hover-darker: rgba(
+  var(--v-theme-surface-variant),
+  calc(0.12 * var(--v-theme-overlay-multiplier))
+);
+
 .tc-row > .tc-cell:first-child {
   border-left: 1px solid var(--color-border);
 }
@@ -90,29 +98,33 @@ onUnmounted(() => {
 .tc-popover {
   --color-border: rgba(var(--v-border-color), var(--v-border-opacity));
   --color-background: rgb(var(--v-theme-surface));
-  --color-background-hover: rgba(
-    var(--v-theme-surface-variant),
-    calc(0.04 * var(--v-theme-overlay-multiplier))
-  );
+  --color-background-hover: $surface-hover-light;
 }
 .tc-popover__item-icon {
   --color-background: transparent;
   --color-border: none;
-}
-.tc-popover__item-icon > svg > path {
-  fill: currentColor;
+
+  > svg {
+    > path {
+      fill: currentColor;
+    }
+    > rect {
+      fill: transparent;
+    }
+  }
 }
 .tc-toolbox__toggler > svg > rect {
   fill: transparent;
-}
-.tc-toolbox__toggler > svg > rect:hover {
-  fill: var(--color-background);
+  &:hover {
+    fill: $surface-hover-darker;
+  }
 }
 .tc-toolbox {
   --toggler-dots-color: currentColor;
   --toggler-dots-color-hovered: currentColor;
 }
-.cdx-checklist__item-checkbox {
+.cdx-checklist__item-checkbox,
+.ce-block.ce-block--selected > div {
   border-radius: 3px;
 }
 .cdx-checklist__item-checkbox,
@@ -136,21 +148,17 @@ onUnmounted(() => {
 .ce-conversion-tool:hover,
 .ce-popover__item:hover,
 .ce-settings__default-zone > div:hover,
+.cdx-settings-button:hover {
+  background-color: $surface-hover-light;
+}
 .ce-toolbar__plus:hover,
-.cdx-settings-button:hover,
 .ce-toolbar__settings-btn:hover {
-  background-color: rgba(
-    var(--v-theme-surface-variant),
-    calc(0.04 * var(--v-theme-overlay-multiplier))
-  );
+  background-color: $surface-hover-darker;
 }
 
 .ce-block.ce-block--selected > div,
 .ce-popover__item--focused {
-  background-color: rgba(
-    var(--v-theme-surface-variant),
-    calc(0.12 * var(--v-theme-overlay-multiplier))
-  ) !important;
+  background-color: $surface-hover-darker !important;
   box-shadow: none;
 }
 .ce-popover__item-icon,
@@ -164,7 +172,9 @@ onUnmounted(() => {
   opacity: 0.8;
   background-color: transparent;
 }
-.ce-block.ce-block--selected > div {
-  border-radius: 3px;
+
+.cdx-marker {
+  background-color: rgb(var(--v-theme-warning));
+  color: rgb(var(--v-theme-on-warning));
 }
 </style>
