@@ -10,6 +10,11 @@ router = APIRouter(
 )
 
 
+@router.get("s", response_model=list[Page])
+async def get_pages(user: User = Depends(is_connected)) -> Page:
+    return await Page.get_all(user)
+
+
 @router.post("", response_model=Page)
 async def create_page(page: PageCreation, user: User = Depends(is_connected)) -> Page:
     return await page.create(user)
@@ -22,3 +27,18 @@ async def get_page(page_id: int, user: User = Depends(is_connected)) -> Page:
 
     return page
 
+
+@router.put("/{page_id}", response_model=Page)
+async def update_page(page_id: int, page: PageCreation, user: User = Depends(is_connected)) -> Page:
+    if (page := await Page.update(page_id, page, user)) is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "This page does not exists")
+
+    return page
+
+
+@router.delete("/{page_id}", response_model=Page)
+async def delete_page(page_id: int, user: User = Depends(is_connected)) -> Page:
+    if (page := await Page.delete(page_id, user)) is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "This page does not exists")
+
+    return page

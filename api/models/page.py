@@ -68,15 +68,22 @@ class Page(BaseModel):
         return cls(**await db.fetch_one(query))
 
     @classmethod
+    async def update(cls, page_id: int, page: PageCreation, user: User) -> Page | None:
+        if page := await db.fetch_one(
+            update(DBPage).values(title=page.title).where(DBPage.id == page_id).returning(DBPage)
+        ):
+            return cls(**page)
+
+    @classmethod
+    async def delete(cls, id: int, user: User) -> Page | None:
+        if page := await db.fetch_one(delete(DBPage).where(DBPage.id == id).returning(DBPage)):
+            return cls(**page)
+
+    @classmethod
     async def get_all(cls, author: User) -> list[Page]:
         """Return a list of all pages created by a user"""
         query = select(DBPage).where(DBPage.author == author.id)
         return [cls(**u) for u in await db.fetch_all(query)]
 
-    async def update(self, **fields) -> Self:
-        self.edited = await db.fetch_val(
-            update(DBPage).values(**fields).where(DBPage.id == self.id).returning(DBPage.edited)
-        )
-        return self
 
 
