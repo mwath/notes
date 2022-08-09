@@ -15,6 +15,8 @@
         <v-list-item
           title="New Page"
           prepend-icon="mdi-plus"
+          @click="create()"
+          :disabled="loading"
         />
       </v-list>
       <v-divider />
@@ -38,9 +40,31 @@ import { RouterView, useRouter } from "vue-router";
 import { Page, usePageStore } from "./stores/page";
 import { useThemeStore } from "./stores/theme";
 import { useStore } from "./stores/user";
+import { useToast } from "vue-toastification";
+import slugify from "@/composables/slugify";
 
 const store = useStore();
 const theme = useThemeStore();
+const pages = usePageStore();
+const router = useRouter();
+
+const data = ref<Page>();
+const error = ref<string>();
+const loading = ref(false);
+const toast = useToast();
+
+const create = async () => {
+  await pages.create({ title: "Nouvelle Page" }, data, error, loading);
+
+  if (error.value) {
+    toast.error(error.value);
+  } else if (data.value) {
+    router.push({
+      name: "Page",
+      params: { id: data.value.id, title: slugify(data.value.title) },
+    });
+  }
+};
 </script>
 
 <style>

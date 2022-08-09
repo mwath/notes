@@ -16,6 +16,8 @@ export interface PageCreation {
 }
 
 export const usePageStore = defineStore("page", () => {
+  const draft = ref<Page>();
+
   async function create(
     page: PageCreation,
     data?: Ref<Page | undefined>,
@@ -29,7 +31,7 @@ export const usePageStore = defineStore("page", () => {
     try {
       let result = await requests.post<Page>("/page", page);
       if (error) error.value = undefined;
-      if (data) data.value = result.data;
+      if (data) draft.value = data.value = result.data;
     } catch (err: any) {
       if (data) data.value = undefined;
       if (error) error.value = err?.response?.data?.detail || err.message;
@@ -38,5 +40,29 @@ export const usePageStore = defineStore("page", () => {
     if (loading) loading.value = false;
   }
 
-  return { create };
+  async function get(
+    id: number,
+    data: Ref<Page | undefined>,
+    error?: Ref<string | undefined>
+  ) {
+    if (draft.value?.id == id) {
+      const page = draft.value;
+      draft.value = undefined;
+      return page;
+    }
+
+    if (error) error.value = undefined;
+    data.value = undefined;
+
+    try {
+      let result = await requests.get<Page>(`/page/${id}`);
+      if (error) error.value = undefined;
+      data.value = result.data;
+    } catch (err: any) {
+      if (data) data.value = undefined;
+      if (error) error.value = err?.response?.data?.detail || err.message;
+    }
+  }
+
+  return { create, get };
 });
