@@ -10,12 +10,12 @@ from .base import db, Base
 class DBUser(Base):
     __tablename__ = "users"
 
-    id = Column("id", Integer, primary_key=True)
-    email = Column("email", String(320), nullable=False)
-    username = Column("username", String(20), unique=True, nullable=False)
-    password = Column("password", String, nullable=False)
-    totp = Column("totp", String, nullable=True)
-    totp_counter = Column("totp_counter", Integer, nullable=True)
+    id = Column(Integer, primary_key=True)
+    email = Column(String(320), nullable=False)
+    username = Column(String(20), unique=True, nullable=False)
+    password = Column(String, nullable=False)
+    totp = Column(String, nullable=True)
+    totp_counter = Column(Integer, nullable=True)
 
 
 class UserBase(BaseModel):
