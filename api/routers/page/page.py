@@ -21,3 +21,4 @@ async def get_page(page_id: int, user: User = Depends(is_connected)) -> Page:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "This page does not exists")
 
     return page
+
