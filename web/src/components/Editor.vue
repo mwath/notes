@@ -58,19 +58,21 @@ onMounted(() => {
       table: { class: Table },
       underline: { class: Underline },
     },
-    onReady: function () {
+    onReady: () => {
       console.log("ready");
       new Undo({ editor: editor.value });
       new DragDrop(editor.value);
     },
-    onChange: function () {
-      console.log("change");
+    onChange: (api, evt: CustomEvent<{ target: BlockAPI }>) => {
+      console.log("change", evt.detail.target.id, evt.type);
+      api.saver.save().then((data) => {
+        console.log(data);
+      });
     },
   });
 });
 
 onUnmounted(() => {
-  console.log("unmounted");
   editor.value?.destroy();
 });
 </script>
