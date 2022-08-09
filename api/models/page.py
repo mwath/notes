@@ -73,13 +73,10 @@ class Page(BaseModel):
         query = select(DBPage).where(DBPage.author == author.id)
         return [cls(**u) for u in await db.fetch_all(query)]
 
-    async def updateTitle(self, title: str) -> Self:
-        query = update(DBPage).values(title=title).where(DBPage.id == self.id).returning(DBPage.edited)
-        self.edited = await db.fetch_val(query)
+    async def update(self, **fields) -> Self:
+        self.edited = await db.fetch_val(
+            update(DBPage).values(**fields).where(DBPage.id == self.id).returning(DBPage.edited)
+        )
         return self
 
-    async def updateContent(self, content: str) -> Self:
-        query = update(DBPage).values(content=content).where(DBPage.id == self.id).returning(DBPage.edited)
-        self.edited = await db.fetch_val(query)
-        return self
 
