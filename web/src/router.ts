@@ -3,7 +3,8 @@ import Home from "./views/Home.vue";
 import Login from "./views/Login.vue";
 import Register from "./views/Register.vue";
 import Settings from "./views/Settings.vue";
-import NewPage from "./views/NewPage.vue";
+import Page from "./views/Page.vue";
+import NotFound from "./components/NotFound.vue";
 
 const routes = [
   {
@@ -12,14 +13,9 @@ const routes = [
     component: Home,
   },
   {
-    path: "/new",
-    name: "Create a page",
-    component: NewPage,
-  },
-  {
-    path: "/search",
-    name: "Search",
-    component: Home,
+    path: "/page/:id/:title?",
+    name: "Page",
+    component: Page,
   },
   {
     path: "/settings",
@@ -36,6 +32,7 @@ const routes = [
     name: "Register",
     component: Register,
   },
+  { path: "/:path(.*)*", name: "NotFound", component: NotFound },
 ];
 
 const router = createRouter({
