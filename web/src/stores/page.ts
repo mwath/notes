@@ -6,7 +6,6 @@ export interface Page {
   id: number;
   title: string;
   author: number;
-  content: string;
   created: Date;
   edited: Date;
 }

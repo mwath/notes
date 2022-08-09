@@ -5,8 +5,22 @@ from typing import Optional
 from typing_extensions import Self
 
 from pydantic import BaseModel, constr
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, select, insert, update
+from sqlalchemy import (
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    select,
+    insert,
+    update,
+    bindparam,
+    delete,
+    literal_column,
+)
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import JSONB
 
 from .base import Base, db
 from .user import User
@@ -15,12 +29,21 @@ from .user import User
 class DBPage(Base):
     __tablename__ = "pages"
 
-    id = Column("id", Integer, primary_key=True)
-    title = Column("title", String(50), nullable=False)
-    author = Column("author", Integer, ForeignKey("users.id"), nullable=False)
-    content = Column("content", String(20000), nullable=False, server_default="")
-    created = Column("created", DateTime, nullable=False, server_default=func.now())
-    edited = Column("edited", DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+    id = Column(Integer, primary_key=True)
+    title = Column(String(50), nullable=False)
+    author = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created = Column(DateTime, nullable=False, server_default=func.now())
+    edited = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+
+class DBBlock(Base):
+    __tablename__ = "blocks"
+
+    id = Column(String(10), primary_key=True, nullable=False)
+    page_id = Column(Integer, ForeignKey("pages.id"), primary_key=True, nullable=False)
+    sequence = Column(Integer, unique=True, nullable=False)
+    type = Column(String(16), nullable=False)
+    data = Column(JSONB, nullable=False)
 
 
 class PageCreation(BaseModel):
@@ -35,15 +58,14 @@ class Page(BaseModel):
     id: int
     title: str
     author: int
-    content: str
     created: datetime
     edited: datetime
 
     @classmethod
-    async def get(cls, id: int, user: User) -> Optional[Page]:
+    async def get(cls, id: int, user: User) -> Page | None:
         # TODO: Check for permissions
         query = select(DBPage).where(DBPage.id == id)
-        return await db.fetch_one(query)
+        return cls(**await db.fetch_one(query))
 
     @classmethod
     async def get_all(cls, author: User) -> list[Page]:
