@@ -1,11 +1,11 @@
 <template>
-  <v-app :theme="theme.scheme">
-    <v-navigation-drawer v-if="store.user" app permanent>
+  <v-app :theme="$theme.scheme">
+    <v-navigation-drawer v-if="$user.user" app permanent>
       <v-list>
         <v-list-item
           prepend-avatar="https://randomuser.me/api/portraits/men/78.jpg"
-          :title="store.user.username"
-          :subtitle="store.user.email"
+          :title="$user.user.username"
+          :subtitle="$user.user.email"
         />
       </v-list>
       <v-divider />
@@ -43,9 +43,9 @@ import { useStore } from "./stores/user";
 import { useToast } from "vue-toastification";
 import slugify from "@/composables/slugify";
 
-const store = useStore();
-const theme = useThemeStore();
-const pages = usePageStore();
+const $user = useUserStore();
+const $theme = useThemeStore();
+const $pages = usePageStore();
 const router = useRouter();
 
 const data = ref<Page>();
@@ -54,7 +54,7 @@ const loading = ref(false);
 const toast = useToast();
 
 const create = async () => {
-  await pages.create({ title: "Nouvelle Page" }, data, error, loading);
+  await $pages.create({ title: "Nouvelle Page" }, data, error, loading);
 
   if (error.value) {
     toast.error(error.value);
