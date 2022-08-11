@@ -138,14 +138,14 @@ import {
   enable2FA as enable2FAInit,
   disable2FA as disable2FAInit,
 } from "../composables/api/auth/2fa";
-import { useStore } from "@/stores/user";
+import { useUserStore } from "@/stores/user";
 
 const dialog2fa = ref(false);
 const showURI = ref(false);
 const dialogAction = ref<"enable" | "disable">();
 const otpInput = ref<{ otp: string[] } | null>(null);
 const themeStore = useThemeStore();
-const userStore = useStore();
+const userStore = useUserStore();
 const { load: logout } = logoutInit();
 
 const { data: new2fa, error: new2faError, load: request2FA } = request2FAInit();

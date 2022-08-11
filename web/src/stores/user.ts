@@ -10,7 +10,7 @@ function redirectToLogin() {
     router.push("/login");
 }
 
-export const useStore = defineStore("user", () => {
+export const useUserStore = defineStore("user", () => {
   const { data: user, error, load } = me(loadFromLocal("user"));
   const reload = async () => {
     await load();

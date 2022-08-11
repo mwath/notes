@@ -1,7 +1,7 @@
 import requests from "../requests";
 import { APIResponse } from "../base";
 import { ref } from "vue";
-import { useStore } from "$/user";
+import { useUserStore } from "$/user";
 
 export function logout(): APIResponse<boolean> {
   const data = ref<boolean>();
@@ -20,7 +20,7 @@ export function logout(): APIResponse<boolean> {
 
     if (data.value) {
       // Remove the user from the store
-      useStore().user = undefined;
+      useUserStore().user = undefined;
     }
   }
 

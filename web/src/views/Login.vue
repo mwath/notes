@@ -75,7 +75,7 @@ import { login as loginInit } from "../composables/api/auth/login";
 import { login2fa } from "../composables/api/auth/2fa";
 import VOtpInput from "vue3-otp-input";
 import { useRouter } from "vue-router";
-import { useStore } from "../stores/user";
+import { useUserStore } from "../stores/user";
 
 interface VOtpInputDef {
   otp: string[];
@@ -112,7 +112,7 @@ async function login() {
   loading.value = false;
 
   if (!requires_2fa.value) {
-    useStore().reload();
+    useUserStore().reload();
     router.push("/");
   }
 }
