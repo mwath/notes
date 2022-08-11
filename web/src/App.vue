@@ -20,6 +20,14 @@
         />
       </v-list>
       <v-divider />
+      <v-list nav density="compact">
+        <v-list-item
+          v-for="page in $pages.pages"
+          :key="page.id"
+          :title="page.title"
+          :to="getPageUrl(page)"
+        />
+      </v-list>
 
       <template #append>
         <v-divider />
@@ -35,13 +43,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { RouterView, useRouter } from "vue-router";
-import { Page, usePageStore } from "./stores/page";
+import { Page, getPageUrl, usePageStore } from "./stores/page";
 import { useThemeStore } from "./stores/theme";
-import { useStore } from "./stores/user";
+import { useUserStore } from "./stores/user";
 import { useToast } from "vue-toastification";
-import slugify from "@/composables/slugify";
 
 const $user = useUserStore();
 const $theme = useThemeStore();
@@ -59,12 +66,13 @@ const create = async () => {
   if (error.value) {
     toast.error(error.value);
   } else if (data.value) {
-    router.push({
-      name: "Page",
-      params: { id: data.value.id, title: slugify(data.value.title) },
-    });
+    router.push(getPageUrl(data.value));
   }
 };
+
+onMounted(() => {
+  $pages.list_pages();
+});
 </script>
 
 <style>
