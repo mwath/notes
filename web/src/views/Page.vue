@@ -38,8 +38,9 @@
 
 <script lang="ts" setup>
 import Editor from "@/components/Editor.vue";
+import { Block, useBlockStore } from "@/stores/block";
 import { usePageStore, Page } from "@/stores/page";
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, toRef, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useToast } from "vue-toastification";
 import NotFound from "../components/NotFound.vue";
@@ -47,10 +48,11 @@ import { isRefNotUndefined } from "../composables/ref_undefined";
 
 const toast = useToast();
 const $page = usePageStore();
+const $block = useBlockStore();
 const route = useRoute();
 const params = computed(() => route.params as { id: string; title?: string });
 
-const page = ref<Page>();
+const page = toRef($page, "current");
 const error = ref<string>();
 const notfound = ref(false);
 const titleElement = ref<HTMLElement>();
@@ -98,9 +100,7 @@ function fetchPage() {
   const id = parseInt(params.value.id);
 
   if (!(notfound.value = isNaN(id))) {
-    $page.get(id, page, error).then(() => {
-      if (page.value) $page.setCurrentPage(page.value);
-    });
+    $page.get(id, page, error);
   }
 }
 
@@ -111,6 +111,6 @@ watch(params, (val, old) => {
 onMounted(fetchPage);
 onUnmounted(() => {
   console.log("unmounting");
-  $page.setCurrentPage(undefined);
+  $page.current = undefined;
 });
 </script>

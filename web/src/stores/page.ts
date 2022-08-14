@@ -32,6 +32,11 @@ export const usePageStore = defineStore("page", () => {
   function getPageIndex(page: Page): number {
     return pages.map((p) => p.id).indexOf(page.id);
   }
+  function updatePage(page: Page) {
+    const index = getPageIndex(page);
+    if (index > -1) pages[index] = page;
+    if (current.value?.id == page.id) current.value = page;
+  }
 
   async function create(
     page: PageCreation,
@@ -84,9 +89,7 @@ export const usePageStore = defineStore("page", () => {
     const data = { title };
     try {
       let result = await requests.put<Page>(`/page/${page.value.id}`, data);
-      const index = getPageIndex(result.data);
-      if (index > -1) pages[index] = result.data;
-
+      updatePage(result.data);
       router.replace(getPageUrl((page.value = result.data)));
     } catch (err: any) {}
   }
@@ -110,10 +113,6 @@ export const usePageStore = defineStore("page", () => {
     } catch (err: any) {}
   }
 
-  function setCurrentPage(page: Page | undefined) {
-    current.value = page;
-  }
-
   async function archive(page: Page) {
     try {
       let result = await requests.put(`/page/${page.id}/archive`);
@@ -129,13 +128,13 @@ export const usePageStore = defineStore("page", () => {
   }
 
   return {
+    current,
     create,
     get,
     pages,
     list_pages,
     delete_page,
     changeTitle,
-    setCurrentPage,
     archive,
     unarchive,
   };
