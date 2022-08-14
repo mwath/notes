@@ -4,20 +4,12 @@ from api.models.page import Page, PageCreation
 from api.models.user import User
 from api.routers.auth.login import is_connected
 
-router = APIRouter(
-    prefix="/page",
-    tags=["page"],
-)
+router = APIRouter(tags=["page"])
 
 
 @router.get("s", response_model=list[Page])
 async def get_pages(user: User = Depends(is_connected)) -> Page:
     return await Page.get_all(user)
-
-
-@router.post("", response_model=Page)
-async def create_page(page: PageCreation, user: User = Depends(is_connected)) -> Page:
-    return await page.create(user)
 
 
 @router.get("/{page_id}", response_model=Page)
