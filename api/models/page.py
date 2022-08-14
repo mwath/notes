@@ -10,6 +10,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    UniqueConstraint,
     bindparam,
     delete,
     insert,
@@ -39,10 +40,11 @@ class DBPage(Base):
 
 class DBBlock(Base):
     __tablename__ = "blocks"
+    __table_args__ = (UniqueConstraint("sequence", deferrable=True),)
 
     id = Column(String(10), primary_key=True, nullable=False)
     page_id = Column(Integer, ForeignKey("pages.id"), primary_key=True, nullable=False)
-    sequence = Column(Integer, unique=True, nullable=False)
+    sequence = Column(Integer, nullable=False)
     type = Column(String(16), nullable=False)
     data = Column(JSONB, nullable=False)
 
