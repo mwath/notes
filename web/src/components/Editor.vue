@@ -19,18 +19,48 @@ import Underline from "@editorjs/underline";
 import Warning from "@editorjs/warning";
 import DragDrop from "editorjs-drag-drop";
 import Undo from "editorjs-undo";
-import EditorJS, { BlockAPI } from "@editorjs/editorjs";
-import { onMounted, onUnmounted, ref } from "vue";
+import EditorJS, { BlockAPI, EditorConfig } from "@editorjs/editorjs";
+import { onMounted, onUnmounted, ref, toRef, watch } from "vue";
+import { usePageStore } from "@/stores/page";
+import { useToast } from "vue-toastification";
+import { BlockMutationType } from "@editorjs/editorjs/types/events/block/mutation-type";
+import { Block, useBlockStore } from "@/stores/block";
 
 // const props = defineProps<{}>();
 const holder = ref<HTMLElement>();
 const editor = ref<EditorJS>();
+const page = toRef(usePageStore(), "current");
+const toast = useToast();
+const $block = useBlockStore();
+
+type EditorChangeEvent = CustomEvent<{ target: BlockAPI }> & {
+  type: BlockMutationType;
+};
+
+watch(page, async (value) => {
+  if (page === undefined || editor.value === undefined) return;
+  await editor.value.isReady;
+  editor.value.clear();
+
+  let blocks: Block[] = [];
+  let id;
+
+  const get_id = (arr: Block[]) => {
+    return arr.length > 0 ? arr[arr.length - 1].id : undefined;
+  };
+
+  console.log(editor.value);
+  do {
+    id = get_id(blocks);
+    blocks.push(...(await $block.list_blocks(id)));
+  } while ((get_id(blocks) ?? id) != id);
+  editor.value.render({ blocks });
+});
 
 onMounted(() => {
   editor.value?.destroy();
   editor.value = new EditorJS({
     holder: holder.value,
-    defaultBlock: "paragraph",
     placeholder: "paragraph",
     tools: {
       header: {
@@ -59,15 +89,42 @@ onMounted(() => {
       underline: { class: Underline },
     },
     onReady: () => {
-      console.log("ready");
+      editor
+        .value!.blocks.getBlockByIndex(0)
+        ?.save()
+        .then((block) => {
+          // if (block)
+          //   $block.create(block.id, { type: block.tool, data: block.data });
+        });
+
       new Undo({ editor: editor.value });
       new DragDrop(editor.value);
     },
-    onChange: (api, evt: CustomEvent<{ target: BlockAPI }>) => {
-      console.log("change", evt.detail.target.id, evt.type);
-      api.saver.save().then((data) => {
-        console.log(data);
-      });
+    onChange: async (api, evt: EditorChangeEvent) => {
+      console.log("change", evt.type, evt.detail.target.id);
+      const block = await evt.detail.target.save();
+      if (block && page.value) {
+        const type = block.tool;
+        const data = block.data;
+
+        switch (evt.type) {
+          case BlockMutationType.Added:
+            await $block.create(block.id, { type, data });
+            break;
+          case BlockMutationType.Changed:
+            await $block.update(block.id, { type, data });
+            break;
+          case BlockMutationType.Removed:
+            await $block.delete_block(block.id);
+            break;
+          case BlockMutationType.Moved:
+            console.log(evt, block);
+            break;
+          default:
+            toast.error(`Unknown block mutation: ${evt.type}`);
+            break;
+        }
+      }
     },
   });
 });
