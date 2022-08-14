@@ -11,6 +11,7 @@ export interface Page {
   author: number;
   created: Date;
   edited: Date;
+  active: boolean;
 }
 
 export interface PageCreation {
@@ -113,6 +114,20 @@ export const usePageStore = defineStore("page", () => {
     current.value = page;
   }
 
+  async function archive(page: Page) {
+    try {
+      let result = await requests.put(`/page/${page.id}/archive`);
+      updatePage(result.data);
+    } catch (err: any) {}
+  }
+
+  async function unarchive(page: Page) {
+    try {
+      let result = await requests.put(`/page/${page.id}/unarchive`);
+      updatePage(result.data);
+    } catch (err: any) {}
+  }
+
   return {
     create,
     get,
@@ -121,5 +136,7 @@ export const usePageStore = defineStore("page", () => {
     delete_page,
     changeTitle,
     setCurrentPage,
+    archive,
+    unarchive,
   };
 });

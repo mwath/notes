@@ -3,12 +3,17 @@
   <v-container v-else>
     <v-row no-gutters>
       <v-btn
+        v-if="page"
         variant="outlined"
-        color="error"
-        prepend-icon="mdi-archive-arrow-down-outline"
+        :color="page.active ? 'error' : 'secondary'"
+        :prepend-icon="`mdi-archive-arrow-${
+          page.active ? 'down' : 'up'
+        }-outline`"
+        :disabled="!page"
+        @click="(page!.active ? $page.archive : $page.unarchive)(page as Page)"
         title="La page ne sera pas supprimée, mais se trouvera dans les archives."
       >
-        Archiver
+        {{ page?.active ? "Archiver" : "Désarchiver" }}
       </v-btn>
     </v-row>
     <v-row no-gutters>

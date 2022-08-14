@@ -1,27 +1,26 @@
 from __future__ import annotations
-from datetime import datetime
-import math
 
-from typing import Optional
-from typing_extensions import Self
+from datetime import datetime
 
 from pydantic import BaseModel, constr
 from sqlalchemy import (
+    Boolean,
     Column,
     DateTime,
     ForeignKey,
     Integer,
     String,
-    select,
-    insert,
-    update,
     bindparam,
     delete,
+    insert,
     literal_column,
+    select,
+    true,
+    update,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
-from sqlalchemy.dialects.postgresql import JSONB
 
 from .base import Base, db
 from .user import User
@@ -35,6 +34,7 @@ class DBPage(Base):
     author = Column(Integer, ForeignKey("users.id"), nullable=False)
     created = Column(DateTime, nullable=False, server_default=func.now())
     edited = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+    active = Column(Boolean, nullable=False, server_default=true())
 
 
 class DBBlock(Base):
@@ -61,6 +61,7 @@ class Page(BaseModel):
     author: int
     created: datetime
     edited: datetime
+    active: bool
 
     @classmethod
     async def get(cls, id: int, user: User) -> Page | None:
@@ -78,6 +79,13 @@ class Page(BaseModel):
     @classmethod
     async def delete(cls, id: int, user: User) -> Page | None:
         if page := await db.fetch_one(delete(DBPage).where(DBPage.id == id).returning(DBPage)):
+            return cls(**page)
+
+    @classmethod
+    async def archive(cls, id: int, user: User, archive: bool) -> Page | None:
+        if page := await db.fetch_one(
+            update(DBPage).values(active=not archive).where(DBPage.id == id).returning(DBPage)
+        ):
             return cls(**page)
 
     @classmethod
