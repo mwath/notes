@@ -1,6 +1,6 @@
+from fastapi import HTTPException, Request, status
+from fastapi.openapi.models import OAuthFlowPassword, OAuthFlows
 from fastapi.security import OAuth2
-from fastapi.openapi.models import OAuthFlows, OAuthFlowPassword
-from fastapi import Request, HTTPException, status
 
 
 class OAuth2Cookies(OAuth2):

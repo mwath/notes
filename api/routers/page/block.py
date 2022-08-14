@@ -1,10 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-
 from asyncpg.exceptions import ForeignKeyViolationError
-from api.models.page import Block, BlockCreation, BlockId, BlockUpdate
-from api.models.user import User
-from api.routers.auth.login import is_connected
+from fastapi import APIRouter, HTTPException, status
 
+from api.models.page import Block, BlockCreation, BlockId, BlockUpdate
 
 router = APIRouter(
     prefix="/{page_id}",

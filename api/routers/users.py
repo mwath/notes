@@ -1,8 +1,9 @@
+from asyncpg.exceptions import UniqueViolationError
+from fastapi import APIRouter, Depends, HTTPException, status
+
 from api.models import User, UserCreation, UserPass
 from api.routers.auth import Code2FA, hash_password
 from api.routers.auth.login import is_connected_pass
-from asyncpg.exceptions import UniqueViolationError
-from fastapi import APIRouter, Depends, HTTPException, status
 
 router = APIRouter(
     prefix="/users",

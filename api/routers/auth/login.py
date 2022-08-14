@@ -1,13 +1,12 @@
-from fastapi import Depends, HTTPException, status, Response
+from fastapi import Depends, HTTPException, Response, status
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
 from api.models import User, UserPass
 
 from . import jwt
-from .oauth2 import OAuth2Cookies
 from .constant import TOKEN_EXPIRE_MINUTES
-
+from .oauth2 import OAuth2Cookies
 
 __all__ = [
     "oauth2_scheme",

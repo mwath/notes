@@ -1,22 +1,14 @@
 import json
 from typing import Optional
 
-from api.models import User, UserPass
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, constr
 
+from api.models import User, UserPass
+
 from . import jwt, totp
-from .login import (
-    COOKIE_SETTINGS,
-    TokenModel,
-    cryptctx,
-    is_connected,
-    is_connected_pass,
-    logout,
-    oauth2_scheme,
-    login,
-)
+from .login import COOKIE_SETTINGS, TokenModel, cryptctx, is_connected, is_connected_pass, login, logout, oauth2_scheme
 
 __all__ = ["router"]
 

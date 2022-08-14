@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.models.base import db
-from api.routers import auth, users, page
+from api.routers import auth, page, users
 
 app = FastAPI(title="NotaBene API")
 app.add_middleware(

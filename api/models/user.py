@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 from typing import Optional, Union
 
 from pydantic import BaseModel, EmailStr, constr
-from sqlalchemy import Column, Integer, String, insert, select, delete, update
+from sqlalchemy import Column, Integer, String, delete, insert, select, update
 
-from .base import db, Base
+from .base import Base, db
 
 
 class DBUser(Base):
