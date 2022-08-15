@@ -1,7 +1,8 @@
 from asyncpg.exceptions import ForeignKeyViolationError
 from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel
 
-from api.models.page import Block, BlockCreation, BlockId, BlockUpdate
+from api.models.page import Block, BlockCreation, BlockId, BlockUpdate, PageNotFound
 from api.routers import utils
 
 router = APIRouter(
@@ -22,20 +23,18 @@ async def get_block(page_id: int, block_id: BlockId) -> Block:
 
 
 @router.post("/block/{block_id}", response_model=Block)
-async def add_block(
-    page_id: int, block_id: BlockId, block: BlockCreation, sequence: int = None
-) -> Block:
+async def add_block(page_id: int, block_id: BlockId, block: BlockCreation) -> Block:
     try:
-        return await Block.add(page_id, block_id, block, sequence)
+        return await Block.add(page_id, block_id, block)
+    except PageNotFound as e:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(e))
     except ForeignKeyViolationError:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "This page does not exists")
 
 
 @router.put("/block/{block_id}", response_model=Block)
 @utils.exists("This block does not exists")
-async def update_block(
-    page_id: int, block_id: BlockId, block: BlockUpdate
-) -> Block:
+async def update_block(page_id: int, block_id: BlockId, block: BlockUpdate) -> Block:
     return await Block.update(page_id, block_id, block)
 
 

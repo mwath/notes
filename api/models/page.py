@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Awaitable
 
 from pydantic import BaseModel, constr
 from sqlalchemy import (
@@ -29,6 +30,12 @@ from .user import User
 
 ONE = literal_column("1")
 SEQUENCE_STEP = 256
+
+
+class PageNotFound(Exception):
+    def __init__(self, page: int):
+        self.page = page
+        super().__init__(f"Page id {page} does not exists.")
 
 
 class DBPage(Base):
@@ -75,6 +82,10 @@ class Page(BaseModel):
     created: datetime
     edited: datetime
     active: bool
+
+    @classmethod
+    def exists(cls, page_id: int) -> Awaitable[bool]:
+        return db.fetch_val(select(true()).where(DBPage.id == page_id))
 
     @classmethod
     async def get(cls, id: int, user: User) -> Page | None:
@@ -137,6 +148,7 @@ BlockType = constr(max_length=16)
 class BlockCreation(BaseModel):
     type: BlockType
     data: dict
+    before: BlockId | None = None
 
 
 class BlockUpdate(BaseModel):
@@ -185,18 +197,26 @@ class Block(BaseModel):
         return [cls(**b) for b in await db.fetch_all(query.order_by(DBBlock.sequence).limit(size))]
 
     @classmethod
-    async def add(cls, page_id: int, block_id: BlockId, data: BlockCreation, before: BlockId = None) -> Block:
+    async def add(cls, page_id: int, block_id: BlockId, data: BlockCreation) -> Block:
         """
         Add a block to the page. Append it to the end if no sequence number is given.
         Otherwise, it will insert the block in the page and increment the sequence of all subsequent blocks.
         """
 
         return await cls._insert(
-            page_id, before, insert(DBBlock).returning(DBBlock), page_id=page_id, id=block_id, **data.dict()
+            page_id,
+            data.before,
+            insert(DBBlock).returning(DBBlock),
+            page_id=page_id,
+            id=block_id,
+            **data.dict(exclude={"before"}),
         )
 
     @classmethod
-    async def _insert(cls, page_id: int, before: BlockId | None, query: insert | update, **kwargs) -> Block | None:
+    async def _insert(cls, page_id: int, before: BlockId | None, query: insert | update, /, **kwargs) -> Block | None:
+        if not await Page.exists(page_id):
+            raise PageNotFound(page_id)
+
         if before is None:
             sequence = (
                 select(SEQUENCE_STEP * (func.div(DBBlock.sequence, SEQUENCE_STEP) + 1))
