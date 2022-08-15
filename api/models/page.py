@@ -10,6 +10,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    Table,
     UniqueConstraint,
     bindparam,
     delete,
@@ -23,8 +24,11 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
 
-from .base import Base, db
+from .base import Base, TempBase, create_table_as, db
 from .user import User
+
+ONE = literal_column("1")
+SEQUENCE_STEP = 256
 
 
 class DBPage(Base):
@@ -47,6 +51,13 @@ class DBBlock(Base):
     sequence = Column(Integer, nullable=False)
     type = Column(String(16), nullable=False)
     data = Column(JSONB, nullable=False)
+
+
+class BlockFlatten(TempBase):
+    __tablename__ = "block_flatten"
+
+    id = Column(String(10), primary_key=True, nullable=False)
+    seq = Column(Integer, nullable=False)
 
 
 class PageCreation(BaseModel):
@@ -96,6 +107,28 @@ class Page(BaseModel):
         query = select(DBPage).where(DBPage.author == author.id)
         return [cls(**u) for u in await db.fetch_all(query)]
 
+    @classmethod
+    @db.transaction()
+    async def _flatten(cls, page_id: int):
+        # similar to enumerate(rows)
+        seq = func.row_number().over(order_by=DBBlock.sequence) * SEQUENCE_STEP
+
+        # Create a temporary table that holds the flattened sequences
+        await db.execute(
+            create_table_as(
+                BlockFlatten,
+                select(DBBlock.id.label("id"), seq.label("seq")).where(DBBlock.page_id == page_id),
+                temp=True,
+                on_commit="DROP",
+            )
+        )
+        # Then update the sequences on the real table
+        await db.execute(
+            update(DBBlock)
+            .values(sequence=BlockFlatten.seq)
+            .where(DBBlock.page_id == page_id, DBBlock.id == BlockFlatten.id)
+        )
+
 
 BlockId = constr(max_length=10)
 BlockType = constr(max_length=16)
@@ -125,19 +158,12 @@ class Block(BaseModel):
             return cls(**block)
 
     @classmethod
-    @db.transaction()
     async def delete(cls, page_id: int, block_id: BlockId) -> Block | None:
         """Delete a single block from the database."""
         if block := await db.fetch_one(
             delete(DBBlock).where(DBBlock.page_id == page_id, DBBlock.id == block_id).returning(DBBlock)
         ):
-            block = cls(**block)
-            await db.execute(
-                update(DBBlock)
-                .values(sequence=DBBlock.sequence - 1)
-                .where(DBBlock.page_id == page_id, DBBlock.sequence > block.sequence)
-            )
-            return block
+            return cls(**block)
 
     @classmethod
     async def get_slice(cls, page_id: int, from_: BlockId | None, size: int = 25) -> list[Block]:
@@ -159,29 +185,52 @@ class Block(BaseModel):
         return [cls(**b) for b in await db.fetch_all(query.order_by(DBBlock.sequence).limit(size))]
 
     @classmethod
-    @db.transaction()
-    async def add(cls, page_id: int, block_id: BlockId, data: BlockCreation, sequence: int = None) -> Block:
+    async def add(cls, page_id: int, block_id: BlockId, data: BlockCreation, before: BlockId = None) -> Block:
         """
         Add a block to the page. Append it to the end if no sequence number is given.
         Otherwise, it will insert the block in the page and increment the sequence of all subsequent blocks.
         """
-        if sequence is None:
-            one = literal_column("1")
-            sequence = select(func.count(one)).select_from(DBBlock).where(DBBlock.page_id == page_id).as_scalar()
-        else:
-            await db.execute(
-                update(DBBlock)
-                .values(sequence=DBBlock.sequence + 1)
-                .where(DBBlock.page_id == page_id, DBBlock.sequence <= sequence)
-            )
 
-        return cls(
-            **await db.fetch_one(
-                insert(DBBlock)
-                .values(page_id=page_id, id=block_id, sequence=sequence, **data.dict())
-                .returning(DBBlock)
-            )
+        return await cls._insert(
+            page_id, before, insert(DBBlock).returning(DBBlock), page_id=page_id, id=block_id, **data.dict()
         )
+
+    @classmethod
+    async def _insert(cls, page_id: int, before: BlockId | None, query: insert | update, **kwargs) -> Block | None:
+        if before is None:
+            sequence = (
+                select(SEQUENCE_STEP * (func.div(DBBlock.sequence, SEQUENCE_STEP) + 1))
+                .where(DBBlock.page_id == page_id)
+                .order_by(DBBlock.sequence.desc())
+                .limit(1)
+                .as_scalar()
+            )
+            block = await db.fetch_one(query.values(sequence=sequence, **kwargs))
+        else:
+            async with db.transaction():
+                sequences: list[int] = [
+                    s.sequence
+                    for s in await db.fetch_all(
+                        select(DBBlock.sequence)
+                        .where(DBBlock.page_id == page_id, DBBlock.id <= before)
+                        .order_by(DBBlock.sequence.desc())
+                        .limit(2)
+                    )
+                ]
+
+                if len(sequences) == 1:
+                    sequence = SEQUENCE_STEP * (sequences[0].sequence // SEQUENCE_STEP - 1)
+                else:
+                    bbseq, bseq = sequences
+                    if abs(bseq - bbseq) <= 1:
+                        await Page._flatten(page_id)
+                    else:
+                        sequence = (bseq + bbseq) // 2
+
+                block = await db.fetch_one(query.values(sequence=sequence, **kwargs))
+
+        if block:
+            return cls(**block)
 
     @classmethod
     async def update(cls, page_id: int, block_id: BlockId, data: BlockUpdate) -> Block | None:
@@ -206,10 +255,10 @@ class Block(BaseModel):
             select(DBBlock.id, DBBlock.sequence).where(DBBlock.page_id == page_id, DBBlock.id in [block1, block2])
         )
         if len(rows) != 2:
-            missing = {block1, block2} - {row["id"] for row in rows}
+            missing = {block1, block2} - {row.id for row in rows}
             raise ValueError(f"Unable to swap missing blocks: {missing}")
 
-        rows[0]["sequence"], rows[1]["sequence"] = rows[1]["sequence"], rows[0]["sequence"]
+        rows[0].sequence, rows[1].sequence = rows[1].sequence, rows[0].sequence
         await db.execute_many(
             update(DBBlock)
             .values(sequence=bindparam("sequence"))
@@ -219,32 +268,13 @@ class Block(BaseModel):
 
     @classmethod
     @db.transaction()
-    async def move(cls, page_id: int, block_id: BlockId, dst: int):
+    async def move(cls, page_id: int, block_id: BlockId, before: BlockId | None) -> Block | None:
         """Move a block's position to anywhere. Will update sequence of other blocks."""
-        src = await db.fetch_val(
-            select(DBBlock.sequence).where(
-                DBBlock.id == block_id,
-                DBBlock.page_id == page_id,
-            )
-        )
-        if dst == src:
-            return
+        if block_id == before:
+            return await cls.get(page_id, block_id)
 
-        direction = (src - dst) // abs(src - dst)
-        await db.execute(
-            update(DBBlock)
-            .values(sequence=DBBlock.sequence + direction)
-            .where(
-                DBBlock.page_id == page_id,
-                src < DBBlock.sequence if direction < 0 else dst <= DBBlock.sequence,
-                src > DBBlock.sequence if direction > 0 else dst >= DBBlock.sequence,
-            )
-        )
-        await db.execute(
-            update(DBBlock)
-            .values(sequence=dst)
-            .where(
-                DBBlock.page_id == page_id,
-                DBBlock.id == block_id,
-            )
+        return await cls._insert(
+            page_id,
+            before,
+            update(DBBlock).where(DBBlock.page_id == page_id, DBBlock.id == block_id).returning(DBBlock),
         )
