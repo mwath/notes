@@ -45,9 +45,12 @@ async def remove_block(page_id: int, block_id: BlockId) -> Block:
     return await Block.delete(page_id, block_id)
 
 
-@router.put("/block/{block_id}/move/{dest}")
-async def move_block(page_id: int, block_id: BlockId, dest: int) -> Block:
-    await Block.move(page_id, block_id, dest)
+class BlockMove(BaseModel):
+    dest: BlockId | None = None
+
+@router.put("/block/{block_id}/move")
+async def move_block(page_id: int, block_id: BlockId, move: BlockMove) -> Block:
+    await Block.move(page_id, block_id, move.dest)
 
 
 @router.put("/blocks/swap")
