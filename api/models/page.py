@@ -239,7 +239,7 @@ class Block(BaseModel):
                 ]
 
                 if len(sequences) == 1:
-                    sequence = SEQUENCE_STEP * (sequences[0].sequence // SEQUENCE_STEP - 1)
+                    sequence = SEQUENCE_STEP * (sequences[0] // SEQUENCE_STEP - 1)
                 else:
                     bbseq, bseq = sequences
                     if abs(bseq - bbseq) <= 1:
