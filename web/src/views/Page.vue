@@ -38,8 +38,8 @@
 
 <script lang="ts" setup>
 import Editor from "@/components/Editor.vue";
-import { Block, useBlockStore } from "@/stores/block";
-import { usePageStore, Page } from "@/stores/page";
+import { Block, useBlockStore } from "$/block";
+import { usePageStore, Page } from "$/page";
 import { computed, onMounted, onUnmounted, ref, toRef, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useToast } from "vue-toastification";

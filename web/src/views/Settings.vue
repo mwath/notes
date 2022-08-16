@@ -138,7 +138,7 @@ import {
   enable2FA as enable2FAInit,
   disable2FA as disable2FAInit,
 } from "../composables/api/auth/2fa";
-import { useUserStore } from "@/stores/user";
+import { useUserStore } from "$/user";
 
 const dialog2fa = ref(false);
 const showURI = ref(false);

@@ -17,14 +17,14 @@ import SimpleImage from "@editorjs/simple-image";
 import Table from "@editorjs/table";
 import Underline from "@editorjs/underline";
 import Warning from "@editorjs/warning";
+import { Block, useBlockStore } from "$/block";
+import { usePageStore } from "$/page";
 import DragDrop from "editorjs-drag-drop";
 import Undo from "editorjs-undo";
 import EditorJS, { BlockAPI, EditorConfig } from "@editorjs/editorjs";
 import { onMounted, onUnmounted, ref, toRef, watch } from "vue";
-import { usePageStore } from "@/stores/page";
 import { useToast } from "vue-toastification";
 import { BlockMutationType } from "@editorjs/editorjs/types/events/block/mutation-type";
-import { Block, useBlockStore } from "@/stores/block";
 
 // const props = defineProps<{}>();
 const holder = ref<HTMLElement>();
