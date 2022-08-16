@@ -13,7 +13,7 @@ router = APIRouter(
 
 @router.get("/blocks", response_model=list[Block])
 async def get_page_content(page_id: int, start: BlockId = None):
-    return await Block.get_slice(page_id, start)
+    return await Block.get_slice(page_id, start, size=-1)
 
 
 @router.get("/block/{block_id}", response_model=Block)

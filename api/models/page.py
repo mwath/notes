@@ -194,7 +194,10 @@ class Block(BaseModel):
                 )
             )
 
-        return [cls(**b) for b in await db.fetch_all(query.order_by(DBBlock.sequence).limit(size))]
+        if size > 0:
+            query = query.limit(size)
+
+        return [cls(**b) for b in await db.fetch_all(query.order_by(DBBlock.sequence))]
 
     @classmethod
     async def add(cls, page_id: int, block_id: BlockId, data: BlockCreation) -> Block:
