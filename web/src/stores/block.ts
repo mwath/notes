@@ -107,11 +107,33 @@ export const useBlockStore = defineStore("block", () => {
     } catch (err: any) {}
   }
 
+  async function swap(block1: string, block2: string | undefined) {
+    if ($page.current === undefined || block2 === undefined) return;
+    const pageId = $page.current.id;
+
+    try {
+      await requests.put(`/page/${pageId}/blocks/swap`, [block1, block2]);
+    } catch (err: any) {}
+  }
+
+  async function move(blockId: string, before: string | undefined) {
+    if ($page.current === undefined) return;
+    const pageId = $page.current.id;
+
+    try {
+      await requests.put(`/page/${pageId}/block/${blockId}/move`, {
+        dest: before,
+      });
+    } catch (err: any) {}
+  }
+
   return {
     get,
     create,
     update,
     list_blocks,
     delete_block,
+    move,
+    swap,
   };
 });
