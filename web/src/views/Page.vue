@@ -31,7 +31,7 @@
       </div>
     </v-row>
     <v-row no-gutters>
-      <Editor />
+      <Editor v-if="blocks" :blocks="blocks" />
     </v-row>
   </v-container>
 </template>
@@ -53,6 +53,7 @@ const route = useRoute();
 const params = computed(() => route.params as { id: string; title?: string });
 
 const page = toRef($page, "current");
+const blocks = ref<Block[]>();
 const error = ref<string>();
 const notfound = ref(false);
 const titleElement = ref<HTMLElement>();
@@ -96,11 +97,12 @@ watch(page, (value) => {
   titleElement.value!.innerText = value.title;
 });
 
-function fetchPage() {
+async function fetchPage() {
   const id = parseInt(params.value.id);
 
   if (!(notfound.value = isNaN(id))) {
-    $page.get(id, page, error);
+    await $page.get(id, page, error);
+    blocks.value = await $block.list_blocks();
   }
 }
 

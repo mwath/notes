@@ -13,42 +13,76 @@ import { editor_defaults, EditorEvent } from "@/composables/editor";
 import { onMounted, onUnmounted, ref, toRef, watch } from "vue";
 import { useToast } from "vue-toastification";
 
-// const props = defineProps<{}>();
+const props = defineProps<{ blocks: Block[] }>();
 const holder = ref<HTMLElement>();
 const editor = ref<EditorJS>();
 const page = toRef(usePageStore(), "current");
 const toast = useToast();
 const $block = useBlockStore();
 
+watch(props, async () => {
+  const codex = editor.value;
+  if (codex === undefined) return;
 
-watch(page, async (value) => {
-  if (page === undefined || editor.value === undefined) return;
-  await editor.value.isReady;
-  editor.value.clear();
-
-  let blocks: Block[] = [];
-  let id;
-
-  const get_id = (arr: Block[]) => {
-    return arr.length > 0 ? arr[arr.length - 1].id : undefined;
-  };
-
-  console.log(editor.value);
-  do {
-    id = get_id(blocks);
-    blocks.push(...(await $block.list_blocks(id)));
-  } while ((get_id(blocks) ?? id) != id);
-  editor.value.render({ blocks });
+  await codex.isReady;
+  if (props.blocks.length === 0) codex.clear();
+  else await codex.render({ blocks: props.blocks });
 });
 
-onMounted(() => {
-  editor.value?.destroy();
+const onReady = () => {
+  // Clear the editor if we have an empty editor:
+  // https://github.com/codex-team/editor.js/issues/2010
+  if (props.blocks.length === 0) editor.value?.clear();
+
+  new Undo({ editor: editor.value });
+  new DragDrop(editor.value);
+};
+
+const onChange = async (api: API, evt: EditorEvent) => {
+  console.log("change", evt.type, evt.detail.target.id, evt.detail);
+  const block = await evt.detail.target.save();
+  if (block && page.value) {
+    const type = block.tool;
+    const data = block.data;
+
+    switch (evt.type) {
+      case BlockMutationType.Added:
+        await $block.create(block.id, { type, data });
+        break;
+      case BlockMutationType.Changed:
+        await $block.update(block.id, { type, data });
+        break;
+      case BlockMutationType.Removed:
+        await $block.delete_block(block.id);
+        break;
+      case BlockMutationType.Moved:
+        const { fromIndex: src, toIndex: dst } = evt.detail;
+        const is_swap = Math.abs(src - dst) === 1;
+        const index = is_swap ? src : dst + 1;
+        const action = is_swap ? $block.swap : $block.move;
+        const other = api.blocks.getBlockByIndex(index);
+
+        action(block.id, other?.id);
+        break;
+      default:
+        toast.error(`Unknown block mutation: ${(evt as CustomEvent).type}`);
+        break;
+    }
+  }
+};
+
+const loadEditor = () => {
+  editor.value?.clear();
   editor.value = new EditorJS({
     holder: holder.value,
+    data: { blocks: props.blocks },
     ...editor_defaults,
+    onReady,
+    onChange,
   });
-});
+};
 
+onMounted(loadEditor);
 onUnmounted(() => {
   editor.value?.destroy();
 });
