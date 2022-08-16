@@ -3,28 +3,15 @@
 </template>
 
 <script lang="ts" setup>
-import Checklist from "@editorjs/checklist";
-import Code from "@editorjs/code";
-import Delimiter from "@editorjs/delimiter";
-import Header from "@editorjs/header";
-import InlineCode from "@editorjs/inline-code";
-import Link from "@editorjs/link";
-import Marker from "@editorjs/marker";
-import NestedList from "@editorjs/nested-list";
-import Paragraph from "@editorjs/paragraph";
-import Quote from "@editorjs/quote";
-import SimpleImage from "@editorjs/simple-image";
-import Table from "@editorjs/table";
-import Underline from "@editorjs/underline";
-import Warning from "@editorjs/warning";
 import { Block, useBlockStore } from "$/block";
 import { usePageStore } from "$/page";
+import EditorJS, { API, BlockAPI } from "@editorjs/editorjs";
+import { BlockMutationType } from "@editorjs/editorjs/types/events/block/mutation-type";
 import DragDrop from "editorjs-drag-drop";
 import Undo from "editorjs-undo";
-import EditorJS, { BlockAPI, EditorConfig } from "@editorjs/editorjs";
+import { editor_defaults, EditorEvent } from "@/composables/editor";
 import { onMounted, onUnmounted, ref, toRef, watch } from "vue";
 import { useToast } from "vue-toastification";
-import { BlockMutationType } from "@editorjs/editorjs/types/events/block/mutation-type";
 
 // const props = defineProps<{}>();
 const holder = ref<HTMLElement>();
@@ -33,9 +20,6 @@ const page = toRef(usePageStore(), "current");
 const toast = useToast();
 const $block = useBlockStore();
 
-type EditorChangeEvent = CustomEvent<{ target: BlockAPI }> & {
-  type: BlockMutationType;
-};
 
 watch(page, async (value) => {
   if (page === undefined || editor.value === undefined) return;
@@ -61,71 +45,7 @@ onMounted(() => {
   editor.value?.destroy();
   editor.value = new EditorJS({
     holder: holder.value,
-    placeholder: "paragraph",
-    tools: {
-      header: {
-        class: Header,
-        shortcut: "CMD+SHIFT+H",
-      },
-      list: {
-        class: NestedList,
-      },
-      paragraph: {
-        class: Paragraph,
-        config: {
-          placeholder: ".",
-        },
-      },
-      quote: { class: Quote },
-      warning: { class: Warning },
-      image: { class: SimpleImage },
-      checklist: { class: Checklist },
-      code: { class: Code },
-      delimiter: { class: Delimiter },
-      inlinecode: { class: InlineCode },
-      link: { class: Link },
-      marker: { class: Marker },
-      table: { class: Table },
-      underline: { class: Underline },
-    },
-    onReady: () => {
-      editor
-        .value!.blocks.getBlockByIndex(0)
-        ?.save()
-        .then((block) => {
-          // if (block)
-          //   $block.create(block.id, { type: block.tool, data: block.data });
-        });
-
-      new Undo({ editor: editor.value });
-      new DragDrop(editor.value);
-    },
-    onChange: async (api, evt: EditorChangeEvent) => {
-      console.log("change", evt.type, evt.detail.target.id);
-      const block = await evt.detail.target.save();
-      if (block && page.value) {
-        const type = block.tool;
-        const data = block.data;
-
-        switch (evt.type) {
-          case BlockMutationType.Added:
-            await $block.create(block.id, { type, data });
-            break;
-          case BlockMutationType.Changed:
-            await $block.update(block.id, { type, data });
-            break;
-          case BlockMutationType.Removed:
-            await $block.delete_block(block.id);
-            break;
-          case BlockMutationType.Moved:
-            console.log(evt, block);
-            break;
-          default:
-            toast.error(`Unknown block mutation: ${evt.type}`);
-            break;
-        }
-      }
-    },
+    ...editor_defaults,
   });
 });
 
