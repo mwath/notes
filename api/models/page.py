@@ -274,19 +274,17 @@ class Block(BaseModel):
         Throws an error if one of the block does not exists.
         The same error is thrown if the two blocks are identicals.
         """
-        rows = await db.fetch_all(
-            select(DBBlock.id, DBBlock.sequence).where(DBBlock.page_id == page_id, DBBlock.id in [block1, block2])
-        )
-        if len(rows) != 2:
-            missing = {block1, block2} - {row.id for row in rows}
-            raise ValueError(f"Unable to swap missing blocks: {missing}")
-
-        rows[0].sequence, rows[1].sequence = rows[1].sequence, rows[0].sequence
-        await db.execute_many(
-            update(DBBlock)
-            .values(sequence=bindparam("sequence"))
-            .where(DBBlock.page_id == page_id, DBBlock.id == bindparam("id")),
-            rows,
+        await db.execute(
+            """
+        UPDATE blocks dst
+            SET sequence = src.sequence
+        FROM blocks src
+        WHERE dst.page_id = :page_id
+            AND src.page_id = :page_id
+            AND dst.id IN (:block1, :block2)
+            AND src.id IN (:block1, :block2)
+            AND src.id != dst.id;""",
+            {"page_id": page_id, "block1": block1, "block2": block2},
         )
 
     @classmethod
