@@ -51,7 +51,7 @@ class DBPage(Base):
 
 class DBBlock(Base):
     __tablename__ = "blocks"
-    __table_args__ = (UniqueConstraint("sequence", deferrable=True),)
+    __table_args__ = (UniqueConstraint("page_id", "sequence", deferrable=True),)
 
     id = Column(String(10), primary_key=True, nullable=False)
     page_id = Column(Integer, ForeignKey("pages.id"), primary_key=True, nullable=False)
