@@ -225,7 +225,7 @@ class Block(BaseModel):
                 .limit(1)
                 .as_scalar()
             )
-            block = await db.fetch_one(query.values(sequence=sequence, **kwargs))
+            block = await db.fetch_one(query.values(sequence=func.coalesce(sequence, 0), **kwargs))
         else:
             async with db.transaction():
                 sequences: list[int] = [
