@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from passlib.exc import MalformedTokenError, TokenError
-from passlib.totp import TOTP, TotpMatch
+from passlib.totp import TOTP
 
 from .constant import API_DOMAIN_NAME, OTP_SECRET
 

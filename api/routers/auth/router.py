@@ -8,7 +8,16 @@ from pydantic import BaseModel, constr
 from api.models import User, UserPass
 
 from . import jwt, totp
-from .login import COOKIE_SETTINGS, TokenModel, cryptctx, is_connected, is_connected_pass, login, logout, oauth2_scheme
+from .login import (
+    COOKIE_SETTINGS,
+    TokenModel,
+    cryptctx,
+    is_connected,
+    is_connected_pass,
+    login,
+    logout,
+    oauth2_scheme,
+)
 
 __all__ = ["router"]
 
