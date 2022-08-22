@@ -2,11 +2,11 @@
   <v-app :theme="$theme.scheme">
     <v-navigation-drawer v-if="$user.user" app permanent>
       <v-list>
-        <v-list-item
-          prepend-avatar="https://randomuser.me/api/portraits/men/78.jpg"
-          :title="$user.user.username"
-          :subtitle="$user.user.email"
-        />
+        <v-list-item :title="$user.user.username" :subtitle="$user.user.email">
+          <template #prepend>
+            <avatar color="primary" :name="$user.user.username" />
+          </template>
+        </v-list-item>
       </v-list>
       <v-divider />
       <v-list nav density="compact">
@@ -49,6 +49,7 @@ import { Page, getPageUrl, usePageStore } from "./stores/page";
 import { useThemeStore } from "./stores/theme";
 import { useUserStore } from "./stores/user";
 import { useToast } from "vue-toastification";
+import avatar from "@/components/Avatar.vue";
 
 const $user = useUserStore();
 const $theme = useThemeStore();
