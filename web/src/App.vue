@@ -50,11 +50,15 @@ import { useThemeStore } from "./stores/theme";
 import { useUserStore } from "./stores/user";
 import { useToast } from "vue-toastification";
 import avatar from "@/components/Avatar.vue";
+import { useGatewayStore } from "./stores/gateway";
 
 const $user = useUserStore();
 const $theme = useThemeStore();
 const $pages = usePageStore();
+const $live = useGatewayStore();
 const router = useRouter();
+
+$live.connect();
 
 const data = ref<Page>();
 const error = ref<string>();

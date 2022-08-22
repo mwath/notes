@@ -42,5 +42,6 @@ export default defineConfig({
     WEB_DOMAIN_NAME: env.WEB_DOMAIN_NAME,
     API_URL: `https://${env.API_DOMAIN_NAME}:${env.HTTPS_PORT}${API_BASE_URL}`,
     WEB_URL: `https://${env.WEB_DOMAIN_NAME}:${env.HTTPS_PORT}${WEB_BASE_URL}`,
+    GATEWAY_URL: `wss://${env.API_DOMAIN_NAME}:${env.HTTPS_PORT}${API_BASE_URL}/gateway`,
   }),
 });

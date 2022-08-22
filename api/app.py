@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.models.base import db
-from api.routers import auth, page, users
+from api.routers import auth, gateway, page, users
 
 app = FastAPI(title="NotaBene API")
 app.add_middleware(
@@ -15,6 +15,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(auth.router)
+app.include_router(gateway.router)
 app.include_router(page.router)
 app.include_router(users.router)
 
@@ -38,6 +39,8 @@ async def startup():
     for key in ("API_DOMAIN_NAME", "OTP_SECRET", "SECRET_KEY"):
         if getattr(auth, key) is None:
             raise ValueError(f"{key!r} env variable is required but not set.")
+
+    gateway.export_messages()
 
 
 @app.on_event("shutdown")
