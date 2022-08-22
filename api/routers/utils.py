@@ -1,5 +1,5 @@
 import functools
-from typing import Any, Awaitable, Callable
+from typing import Any, Awaitable, Callable, Iterator
 
 from fastapi import HTTPException, status
 
@@ -16,3 +16,17 @@ def exists(message: str):
         return wrapper
 
     return deco
+
+
+def tosnake_iter(name: str) -> Iterator[str]:
+    lasti = 0
+    for i, char in enumerate(name):
+        if char.isupper() and lasti != i:
+            yield name[lasti:i].lower()
+            lasti = i
+
+    yield name[lasti:].lower()
+
+
+def tosnake(name: str) -> str:
+    return "_".join(tosnake_iter(name))

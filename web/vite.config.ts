@@ -12,6 +12,7 @@ const WEB_BASE_URL = env.WEB_BASE_URL || "";
 const PORT = env.HTTPS_PORT ? `:${env.HTTPS_PORT}` : "";
 const API_URL = `https://${env.API_DOMAIN_NAME}${PORT}${API_BASE_URL}`;
 const WEB_URL = `https://${env.WEB_DOMAIN_NAME}${PORT}${WEB_BASE_URL}`;
+const GATEWAY_URL = `wss://${env.API_DOMAIN_NAME}${PORT}${API_BASE_URL}/gateway`;
 
 interface Env {
   [key: string]: string;
@@ -46,5 +47,6 @@ export default defineConfig({
     WEB_DOMAIN_NAME: env.WEB_DOMAIN_NAME,
     API_URL: API_URL,
     WEB_URL: WEB_URL,
+    GATEWAY_URL: GATEWAY_URL,
   }),
 });
