@@ -10,6 +10,9 @@ COPY . .
 FROM node:lts-alpine AS build-stage
 WORKDIR /build
 
+ARG API_DOMAIN_NAME
+ARG WEB_DOMAIN_NAME
+
 COPY --from=setup /app .
 RUN yarn build
 
