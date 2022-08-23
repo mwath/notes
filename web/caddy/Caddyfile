@@ -1,12 +1,12 @@
 https://{$WEB_DOMAIN_NAME} {
 	reverse_proxy web:3000
-	encode zstd gzip
+	# encode zstd gzip
 }
 
 https://{$API_DOMAIN_NAME}{$API_BASE_URL}/* {
 	uri strip_prefix {$API_BASE_URL}
 	reverse_proxy api:8000
-	encode zstd gzip
+	# encode zstd gzip
 }
 
 http://{$WEB_DOMAIN_NAME} {

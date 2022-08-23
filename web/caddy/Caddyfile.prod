@@ -1,0 +1,11 @@
+{$WEB_DOMAIN_NAME} {
+	try_files {path} /
+	encode zstd gzip
+	root * /app
+	file_server
+}
+
+{$API_DOMAIN_NAME} {
+	reverse_proxy api:8000
+	encode zstd gzip
+}
