@@ -5,11 +5,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.models.base import db
 from api.routers import auth, page, users
+from api.routers.auth.constant import API_DOMAIN_NAME, WEB_DOMAIN_NAME
+
+origins = {API_DOMAIN_NAME, WEB_DOMAIN_NAME}
 
 app = FastAPI(title="NotaBene API")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[f"https://{origin}" for origin in origins],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,7 +38,7 @@ async def startup():
         raise exception
 
     # Check for ENV variables. If one is missing, prevent from starting.
-    for key in ("API_DOMAIN_NAME", "OTP_SECRET", "SECRET_KEY"):
+    for key in ("API_DOMAIN_NAME", "OTP_SECRET", "SECRET_KEY", "WEB_DOMAIN_NAME"):
         if getattr(auth, key) is None:
             raise ValueError(f"{key!r} env variable is required but not set.")
 

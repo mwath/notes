@@ -33,8 +33,7 @@ services:
       context: ./web
       dockerfile: Dockerfile
       args:
-        API_DOMAIN_NAME: ${API_DOMAIN_NAME}
-        WEB_DOMAIN_NAME: ${WEB_DOMAIN_NAME}
+        <<: *env
       target: caddy
     command: caddy run
     volumes:
