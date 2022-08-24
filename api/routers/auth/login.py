@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from api.models import User, UserPass
 
 from . import jwt
-from .constant import TOKEN_EXPIRE_MINUTES, API_DOMAIN_NAME
+from .constant import API_DOMAIN_NAME, TOKEN_EXPIRE_MINUTES
 from .oauth2 import OAuth2Cookies
 
 __all__ = [

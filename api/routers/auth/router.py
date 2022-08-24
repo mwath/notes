@@ -46,7 +46,7 @@ class SuccessModel(BaseModel):
 
 @router.post("", response_model=TokenModel)
 async def authenticate(response: Response, form_data: OAuth2PasswordRequestForm = Depends()):
-    user = await UserPass.get(form_data.username)
+    user = await UserPass.from_email(form_data.username)
     if user is None or not cryptctx.verify(form_data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -69,7 +69,7 @@ async def authenticate(response: Response, form_data: OAuth2PasswordRequestForm 
 
 
 @router.post("/logout", response_model=SuccessModel)
-async def authenticate(response: Response):
+async def logout(response: Response):
     return SuccessModel(success=logout(response))
 
 

@@ -77,6 +77,11 @@ class UserPass(User, UserCreation):
         if user := await db.fetch_one(select(DBUser).where(DBUser.username == username)):
             return UserPass(**user)
 
+    @classmethod
+    async def from_email(cls, email: str) -> UserPass:
+        if user := await db.fetch_one(select(DBUser).where(DBUser.email == email)):
+            return UserPass(**user)
+
     async def updateTOTPCounter(self, counter: int | None):
         self.totp_counter = counter
         await db.execute(update(DBUser).values(totp_counter=counter).where(DBUser.id == self.id))
