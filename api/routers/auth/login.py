@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from api.models import User, UserPass
 
 from . import jwt
-from .constant import TOKEN_EXPIRE_MINUTES
+from .constant import TOKEN_EXPIRE_MINUTES, API_DOMAIN_NAME
 from .oauth2 import OAuth2Cookies
 
 __all__ = [
@@ -21,7 +21,7 @@ __all__ = [
 oauth2_scheme = OAuth2Cookies(tokenUrl="/auth", cookie_name="access_token")
 cryptctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-COOKIE_SETTINGS = {"secure": True, "httponly": True}
+COOKIE_SETTINGS = {"secure": True, "httponly": True, "samesite": "none", "domain": API_DOMAIN_NAME}
 
 
 class TokenModel(BaseModel):
@@ -30,9 +30,7 @@ class TokenModel(BaseModel):
     # token_type: str = "bearer"
 
 
-def login(
-    response: Response, user: User, expires: int = TOKEN_EXPIRE_MINUTES, req_2fa: bool = False
-) -> TokenModel:
+def login(response: Response, user: User, expires: int = TOKEN_EXPIRE_MINUTES, req_2fa: bool = False) -> TokenModel:
     token = jwt.encode(user.username, expires, requires_2fa=req_2fa)
     response.set_cookie(oauth2_scheme.cookie_name, token, max_age=expires * 60, **COOKIE_SETTINGS)
     return TokenModel(requires_2fa=req_2fa)
