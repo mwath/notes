@@ -218,22 +218,53 @@
         </v-expansion-panel>
       </v-expansion-panels>
     </v-row>
+    <v-row class="mt-16 mb-4" justify="center">
+      <v-divider />
+      <h2>Pages archivées</h2>
+      <v-divider />
+    </v-row>
+      <v-table>
+        <thead>
+          <tr>
+            <th>Auteur</th>
+            <th>Titre</th>
+            <th>Dernière édition</th>
+            <th>Date de création</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="page in $page.pages.filter((page) => !page.active)"
+            :key="page.id"
+            @click="$router.push(getPageUrl(page))"
+          >
+            <th>
+              {{ $user.getUser(page.author).value.username }}
+            </th>
+            <th>{{ page.title }}</th>
+            <th>{{ moment(page.edited).fromNow() }}</th>
+            <th>{{ moment(page.created).fromNow() }}</th>
+          </tr>
+        </tbody>
+      </v-table>
   </v-container>
 </template>
 
 <script lang="ts" setup>
-import { useThemeStore } from "../stores/theme";
-import { logout as logoutInit } from "../composables/api/auth/logout";
-import Qrcode from "../components/Qrcode.vue";
-import VOtpInput from "vue3-otp-input";
-import { ref } from "vue";
-import {
-  request2FA as request2FAInit,
-  enable2FA as enable2FAInit,
-  disable2FA as disable2FAInit,
-} from "../composables/api/auth/2fa";
 import { useUserStore } from "$/user";
 import requests from "@/composables/api/requests";
+import { getPageUrl, usePageStore } from "@/stores/page";
+import moment from "moment";
+import { ref } from "vue";
+import VOtpInput from "vue3-otp-input";
+import Qrcode from "../components/Qrcode.vue";
+import {
+  disable2FA as disable2FAInit,
+  enable2FA as enable2FAInit,
+  request2FA as request2FAInit,
+} from "../composables/api/auth/2fa";
+import { logout as logoutInit } from "../composables/api/auth/logout";
+import { useThemeStore } from "../stores/theme";
 
 const showURI = ref(false);
 const dialog2fa = ref(false);
@@ -244,6 +275,7 @@ const dialogAction = ref<"enable" | "disable">();
 const otpInput = ref<{ otp: string[] } | null>(null);
 const $theme = useThemeStore();
 const $user = useUserStore();
+const $page = usePageStore();
 const { load: logout } = logoutInit();
 
 const { data: new2fa, error: new2faError, load: request2FA } = request2FAInit();
