@@ -99,6 +99,10 @@ class Page(BaseModel):
             return cls(**page)
 
     @classmethod
+    async def updated(cls, page_id: int):
+        await db.execute(update(DBPage).values(edited=func.now()).where(DBPage.id == page_id))
+
+    @classmethod
     async def delete(cls, id: int, user: User) -> Page | None:
         if page := await db.fetch_one(delete(DBPage).where(DBPage.id == id).returning(DBPage)):
             return cls(**page)
@@ -176,6 +180,7 @@ class Block(BaseModel):
         if block := await db.fetch_one(
             delete(DBBlock).where(DBBlock.page_id == page_id, DBBlock.id == block_id).returning(DBBlock)
         ):
+            await Page.updated(page_id)
             return cls(**block)
 
     @classmethod
@@ -254,6 +259,7 @@ class Block(BaseModel):
                 block = await db.fetch_one(query.values(sequence=sequence, **kwargs))
 
         if block:
+            await Page.updated(page_id)
             return cls(**block)
 
     @classmethod
@@ -265,6 +271,7 @@ class Block(BaseModel):
             .where(DBBlock.id == block_id, DBBlock.page_id == page_id)
             .returning(DBBlock)
         ):
+            await Page.updated(page_id)
             return cls(**block)
 
     @classmethod
@@ -287,6 +294,7 @@ class Block(BaseModel):
             AND src.id != dst.id;""",
             {"page_id": page_id, "block1": block1, "block2": block2},
         )
+        await Page.updated(page_id)
 
     @classmethod
     @db.transaction()
