@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 import random
 from typing import Awaitable, TypedDict
 
 from pydantic import BaseModel
-from starlette.websockets import WebSocket
+from starlette.websockets import WebSocket, WebSocketState
 
 from api.models.page import Page
 from api.routers.auth.login import User
@@ -86,6 +87,9 @@ class Client:
         self.channel = channel
 
     def send(self, msg: BaseModel) -> Awaitable[None]:
+        if self.ws.client_state != WebSocketState.CONNECTED:
+            return asyncio.sleep(0)
+
         name = tosnake(msg.__class__.__name__)
         return self.ws.send_text(MessageModel(id=name, data=msg.dict()).json())
 
