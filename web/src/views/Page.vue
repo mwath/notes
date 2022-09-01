@@ -71,7 +71,12 @@
       </div>
     </v-row>
     <v-row no-gutters>
-      <Editor v-if="page && blocks" :blocks="blocks" :readonly="!page.active" />
+      <Editor
+        v-if="page && blocks"
+        :blocks="blocks"
+        :readonly="!page.active"
+        @reload="fetchPage()"
+      />
     </v-row>
   </v-container>
 </template>
@@ -95,11 +100,13 @@ import NotFound from "../components/NotFound.vue";
 import { isRefNotUndefined } from "../composables/ref_undefined";
 import moment from "moment";
 import { useUserStore } from "@/stores/user";
+import { useGatewayStore } from "@/stores/gateway";
 
 const toast = useToast();
 const $page = usePageStore();
 const $block = useBlockStore();
 const $user = useUserStore();
+const $live = useGatewayStore();
 const route = useRoute();
 const params = computed(() => route.params as { id: string; title?: string });
 
@@ -144,10 +151,13 @@ watch(error, (value) => {
   if (value) toast.error(value);
 });
 
-watch(page, (value) => {
+watch(page, (newval, oldval) => {
+  if (newval?.id != oldval?.id && newval)
+    $live.send({ id: "request_join_channel", data: { page_id: newval.id } });
+
   if (!titleElement.value) return;
-  if (!value || value.title === titleElement.value.innerText) return;
-  titleElement.value.innerText = value.title;
+  if (!newval || newval.title === titleElement.value.innerText) return;
+  titleElement.value.innerText = newval.title;
 });
 
 watch(titleElement, (newval, oldval) => {

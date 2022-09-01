@@ -8,6 +8,7 @@ from starlette.websockets import WebSocket
 
 from api.models.page import Page
 from api.routers.auth.login import User
+from api.routers.utils import tosnake
 
 from .messages.clientbound.channel import (
     JoinedChannel,
@@ -41,8 +42,9 @@ class Channel:
         client.cid = cid
         client.channel = self
 
+        msg = UserJoinedChannel(cid=cid, uid=client.user.id, username=client.user.username)
         await client.joined_channel(self, cid)
-        await self.broadcast(UserJoinedChannel(cid=cid, **client.user.dict()), except_=cid)
+        await self.broadcast(msg, except_=cid)
 
     async def remove_client(self, client: Client):
         client = self.clients.pop(client.cid)
@@ -70,6 +72,11 @@ class Message(TypedDict):
     data: dict
 
 
+class MessageModel(BaseModel):
+    id: str
+    data: dict
+
+
 class Client:
     def __init__(self, ws: WebSocket, user: User, cid: int = 0, channel: Channel | None = None):
         self.ws = ws
@@ -78,8 +85,8 @@ class Client:
         self.channel = channel
 
     def send(self, msg: BaseModel) -> Awaitable[None]:
-        name = msg.__class__.__name__.lower()
-        return self.ws.send_json({"id": name, "data": msg.dict()})
+        name = tosnake(msg.__class__.__name__)
+        return self.ws.send_text(MessageModel(id=name, data=msg.dict()).json())
 
     async def disconnected(self):
         if self.channel is not None:
@@ -105,6 +112,7 @@ class Client:
             raise ValueError(f"Invalid serverbound message: {msgid}")
 
         msg = cls(**msg["data"])
+        await msg.handle(self)
 
 
 from .messages.serverbound.register import serverbound_messages

@@ -6,6 +6,7 @@ import { ServerBound } from "@/composables/gateway/serverbound";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { useToast } from "vue-toastification";
+import { usePageStore } from "./page";
 
 type ClientBoundCallback<Key extends keyof ClientBoundMessages> = {
   (data: ClientBoundMessages[Key]): void;
@@ -63,7 +64,12 @@ export const useGatewayStore = defineStore("gateway", () => {
   }
 
   on("login", (data) => {
-    if (!data.success) toast.error("Impossible de se connecter au serveur.");
+    if (!data.success) {
+      toast.error("Impossible de se connecter au serveur.");
+    } else {
+      const page_id = usePageStore().current?.id;
+      if (page_id) send({ id: "request_join_channel", data: { page_id } });
+    }
   });
 
   return {

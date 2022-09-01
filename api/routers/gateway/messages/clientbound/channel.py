@@ -4,6 +4,14 @@ from api.models.page import Page
 
 from .register import register
 
+__all__ = [
+    "JoinedChannel",
+    "LeftChannel",
+    "UserJoinedChannel",
+    "UserLeftChannel",
+    "ChannelNotFound",
+]
+
 
 @register
 class JoinedChannel(BaseModel):

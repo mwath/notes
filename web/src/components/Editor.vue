@@ -12,6 +12,7 @@ import Undo from "editorjs-undo";
 import { editor_defaults, EditorEvent } from "@/composables/editor";
 import { onMounted, onUnmounted, ref, toRef, watch } from "vue";
 import { useToast } from "vue-toastification";
+import { useGatewayStore } from "@/stores/gateway";
 
 const props = defineProps<{ blocks: Block[]; readonly: boolean }>();
 const holder = ref<HTMLElement>();
@@ -19,6 +20,42 @@ const editor = ref<EditorJS>();
 const page = toRef(usePageStore(), "current");
 const toast = useToast();
 const $block = useBlockStore();
+const $live = useGatewayStore();
+const do_not_notify_for_change = new Set<string>();
+const emit = defineEmits<{ (e: "reload"): void }>();
+
+$live.on("block_added", (data) => {
+  emit("reload");
+});
+$live.on("block_modified", async (data) => {
+  if (!editor.value) return;
+  const block = ref<Block>();
+  const error = ref<string>();
+  await $block.get(data.block_id, block, error);
+
+  if (error.value) {
+    toast.error(error.value);
+  } else if (block.value) {
+    do_not_notify_for_change.add(block.value.id);
+    editor.value.blocks.update(block.value.id, block.value.data);
+    do_not_notify_for_change.delete(block.value.id);
+  }
+});
+$live.on("block_deleted", (data) => {
+  if (!editor.value) return;
+  do_not_notify_for_change.add(data.block_id);
+  editor.value.blocks.delete(editor.value.blocks.getBlockIndex(data.block_id));
+  do_not_notify_for_change.delete(data.block_id);
+});
+$live.on("block_moved", (data) => {
+  if (!editor.value) return;
+  do_not_notify_for_change.add(data.block_id);
+  editor.value.blocks.move(
+    data.dest,
+    editor.value.blocks.getBlockIndex(data.block_id)
+  );
+  do_not_notify_for_change.delete(data.block_id);
+});
 
 watch(props, async () => {
   const codex = editor.value;
@@ -39,6 +76,9 @@ const onReady = () => {
 };
 
 const onChange = async (api: API, evt: EditorEvent) => {
+  if (do_not_notify_for_change.has(evt.detail.target.id)) {
+    return;
+  }
   console.log("change", evt.type, evt.detail.target.id, evt.detail);
   const block = await evt.detail.target.save();
   if (block && page.value) {
@@ -48,12 +88,24 @@ const onChange = async (api: API, evt: EditorEvent) => {
     switch (evt.type) {
       case BlockMutationType.Added:
         await $block.create(block.id, { type, data });
+        await $live.send({
+          id: "block_added",
+          data: { block_id: block.id },
+        });
         break;
       case BlockMutationType.Changed:
         await $block.update(block.id, { type, data });
+        await $live.send({
+          id: "block_modified",
+          data: { block_id: block.id },
+        });
         break;
       case BlockMutationType.Removed:
         await $block.delete_block(block.id);
+        await $live.send({
+          id: "block_deleted",
+          data: { block_id: block.id },
+        });
         break;
       case BlockMutationType.Moved:
         const { fromIndex: src, toIndex: dst } = evt.detail;
@@ -62,7 +114,11 @@ const onChange = async (api: API, evt: EditorEvent) => {
         const action = is_swap ? $block.swap : $block.move;
         const other = api.blocks.getBlockByIndex(index);
 
-        action(block.id, other?.id);
+        await action(block.id, other?.id);
+        await $live.send({
+          id: "block_moved",
+          data: { block_id: block.id, dest: dst },
+        });
         break;
       default:
         toast.error(`Unknown block mutation: ${(evt as CustomEvent).type}`);
