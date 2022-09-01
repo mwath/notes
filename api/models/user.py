@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Optional, Union
 
+from asyncpg.exceptions import UniqueViolationError
 from pydantic import BaseModel, EmailStr, constr
 from sqlalchemy import Column, Integer, String, delete, insert, select, update
 
@@ -12,7 +13,7 @@ class DBUser(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    email = Column(String(320), nullable=False)
+    email = Column(String(320), unique=True, nullable=False)
     username = Column(String(20), unique=True, nullable=False)
     password = Column(String, nullable=False)
     totp = Column(String, nullable=True)
@@ -30,11 +31,14 @@ class UserCreation(UserBase):
     async def create(user: UserCreation) -> User:
         """
         Create a new user in the database.
-        Raise `asyncpg.UniqueViolationError` if the username already exists.
+        Raise `asyncpg.UniqueViolationError` if the username or the email already exists.
         """
-        query = insert(DBUser).values(**user.dict()).returning(DBUser.id, DBUser.email, DBUser.username)
+        query = (
+            insert(DBUser)
+            .values(username=user.username, password=user.password, email=user.email.lower())
+            .returning(DBUser.id, DBUser.email, DBUser.username)
+        )
         return User(**await db.fetch_one(query))
-
 
 class User(UserBase):
     id: int

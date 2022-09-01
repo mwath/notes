@@ -54,7 +54,11 @@ async def create_account(user: UserCreation) -> User:
     try:
         user.password = hash_password(user.password)
         user = await user.create()
-    except UniqueViolationError:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Ce nom d'utilisateur existe déjà.")
+    except UniqueViolationError as e:
+        keys = {
+            "users_username_key": "Ce nom d'utilisateur",
+            "users_email_key": "Cet email",
+        }
+        raise HTTPException(status.HTTP_409_CONFLICT, f"{keys[e.constraint_name]} existe déjà.")
 
     return user

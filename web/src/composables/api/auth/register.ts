@@ -21,7 +21,7 @@ export function register(): APIResponse<User, AccountCreation> {
       let result = await requests.post<User>("/users/create", account);
       data.value = result.data;
     } catch (err: any) {
-      error.value = err.message;
+      error.value = err?.response?.data?.detail || err.message;
     }
   }
 
