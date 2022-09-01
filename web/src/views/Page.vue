@@ -170,6 +170,8 @@ async function fetchPage() {
 
   if (!(notfound.value = isNaN(id))) {
     await $page.get(id, page, error);
+    if (page.value && titleElement.value)
+      titleElement.value.innerText = page.value.title;
     blocks.value = await $block.list_blocks();
   }
 }
