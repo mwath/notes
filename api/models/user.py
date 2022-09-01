@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import Optional, Union
 
-from asyncpg.exceptions import UniqueViolationError
 from pydantic import BaseModel, EmailStr, constr
 from sqlalchemy import Column, Integer, String, delete, insert, select, update
+
+from api import models
 
 from .base import Base, db
 
@@ -44,6 +45,8 @@ class User(UserBase):
     id: int
 
     async def delete(self) -> Optional[User]:
+        # Transfert all pages to DeletedUser(id: 0)
+        await db.execute(update(models.page.DBPage).values(author=0).where(models.page.DBPage.author == self.id))
         if user := await db.fetch_one(delete(DBUser).where(DBUser.id == self.id).returning(DBUser)):
             return User(**user)
 
