@@ -5,14 +5,14 @@
         <v-form>
           <v-card title="Se connecter">
             <v-divider />
-            <v-alert
-              v-if="error"
-              type="error"
-              variant="outlined"
-              icon="mdi-cloud-alert"
-              :text="error"
-            />
             <v-card-text class="no-padding">
+              <v-alert
+                v-if="error"
+                type="error"
+                variant="outlined"
+                icon="mdi-cloud-alert"
+                :text="error"
+              />
               <v-container v-if="!requires_2fa">
                 <v-row>
                   <v-col>
@@ -111,7 +111,7 @@ async function login() {
   }
   loading.value = false;
 
-  if (!requires_2fa.value) {
+  if (!requires_2fa.value && !error.value) {
     useUserStore().reload();
     router.push("/");
   }
