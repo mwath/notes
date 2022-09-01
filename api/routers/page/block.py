@@ -20,18 +20,12 @@ router = APIRouter(
 
 @router.get("/blocks", response_model=list[Block])
 async def get_page_content(page_id: int, start: BlockId = None):
-    if await Page.is_archived(page_id):
-        raise HTTPException(status.HTTP_304_NOT_MODIFIED, "Cette page est archivée")
-
     return await Block.get_slice(page_id, start, size=-1)
 
 
 @router.get("/block/{block_id}", response_model=Block)
 @utils.exists("This block does not exists")
 async def get_block(page_id: int, block_id: BlockId) -> Block:
-    if await Page.is_archived(page_id):
-        raise HTTPException(status.HTTP_304_NOT_MODIFIED, "Cette page est archivée")
-
     return await Block.get(page_id, block_id)
 
 
