@@ -1,6 +1,7 @@
+import requests from "@/composables/api/requests";
 import { defineStore } from "pinia";
-import { watch } from "vue";
-import { me } from "../composables/api/users";
+import { ref, Ref, watch } from "vue";
+import { me, User } from "../composables/api/users";
 import router from "../router";
 import { loadFromLocal, saveToLocal } from "./base";
 
@@ -11,6 +12,7 @@ function redirectToLogin() {
 }
 
 export const useUserStore = defineStore("user", () => {
+  const users: { [id: number]: Ref<User> } = {};
   const { data: user, error, load } = me(loadFromLocal("user"));
   const reload = async () => {
     await load();
@@ -20,11 +22,24 @@ export const useUserStore = defineStore("user", () => {
 
   reload();
   watch(user, (newval, oldval) => {
+    if (oldval !== undefined) delete users[oldval.id];
     if (newval == undefined) redirectToLogin();
+    else users[newval.id] = user as Ref<User>;
     if (newval == oldval) return;
 
     saveToLocal("user", newval);
   });
 
-  return { user, reload };
+  function getUser(id: number): Ref<User> {
+    if (!(id in users)) {
+      users[id] = ref({ id, email: "***@***.***", username: `User#${id}` });
+
+      requests.get<User>(`/users/${id}`).then((response) => {
+        users[response.data.id].value = response.data;
+      });
+    }
+    return users[id];
+  }
+
+  return { user, reload, getUser };
 });
