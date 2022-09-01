@@ -13,7 +13,7 @@
       </thead>
       <tbody>
         <tr
-          v-for="page in $page.pages"
+          v-for="page in $page.pages.filter((page) => page.active)"
           :key="page.id"
           @click="$router.push(getPageUrl(page))"
         >
