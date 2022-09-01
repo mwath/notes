@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from api.models.page import Page, PageCreation
 from api.models.user import User
@@ -25,7 +25,11 @@ async def get_page(page_id: int, user: User = Depends(is_connected)) -> Page:
 @router.put("/{page_id}", response_model=Page)
 @utils.exists(PAGE_DOES_NOT_EXISTS)
 async def update_page(page_id: int, page: PageCreation, user: User = Depends(is_connected)) -> Page:
-    return await Page.update(page_id, page, user)
+    result = await Page.update(page_id, page, user)
+    if not result.active:
+        raise HTTPException(status.HTTP_304_NOT_MODIFIED, "Cette page est archivée")
+
+    return result
 
 
 @router.put("/{page_id}/archive", response_model=Page)
@@ -43,4 +47,8 @@ async def unarchive_page(page_id: int, user: User = Depends(is_connected)) -> Pa
 @router.delete("/{page_id}", response_model=Page)
 @utils.exists(PAGE_DOES_NOT_EXISTS)
 async def delete_page(page_id: int, user: User = Depends(is_connected)) -> Page:
-    return await Page.delete(page_id, user)
+    result = await Page.delete(page_id, user)
+    if not result.active:
+        raise HTTPException(status.HTTP_304_NOT_MODIFIED, "Cette page est archivée")
+
+    return result

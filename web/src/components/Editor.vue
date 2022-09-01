@@ -13,7 +13,7 @@ import { editor_defaults, EditorEvent } from "@/composables/editor";
 import { onMounted, onUnmounted, ref, toRef, watch } from "vue";
 import { useToast } from "vue-toastification";
 
-const props = defineProps<{ blocks: Block[] }>();
+const props = defineProps<{ blocks: Block[]; readonly: boolean }>();
 const holder = ref<HTMLElement>();
 const editor = ref<EditorJS>();
 const page = toRef(usePageStore(), "current");
@@ -75,6 +75,7 @@ const loadEditor = () => {
   editor.value?.clear();
   editor.value = new EditorJS({
     holder: holder.value,
+    readOnly: props.readonly,
     data: { blocks: props.blocks },
     ...editor_defaults,
     onReady,

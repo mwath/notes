@@ -71,7 +71,7 @@
       </div>
     </v-row>
     <v-row no-gutters>
-      <Editor v-if="blocks" :blocks="blocks" />
+      <Editor v-if="page && blocks" :blocks="blocks" :readonly="!page.active" />
     </v-row>
   </v-container>
 </template>

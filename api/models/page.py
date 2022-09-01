@@ -81,6 +81,10 @@ class Page(BaseModel):
     edited: datetime
     active: bool
 
+    @staticmethod
+    async def is_archived(page_id: int) -> bool:
+        return not db.fetch_val(select(DBPage.active).where(DBPage.id == page_id))
+
     @classmethod
     def exists(cls, page_id: int) -> Awaitable[bool]:
         return db.fetch_val(select(true()).where(DBPage.id == page_id))
