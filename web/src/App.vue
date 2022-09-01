@@ -90,6 +90,8 @@ watch(user, (val) => {
   if (val) {
     $pages.list_pages();
     $live.connect();
+  } else {
+    $live.disconnect();
   }
 });
 onMounted(() => $pages.list_pages);

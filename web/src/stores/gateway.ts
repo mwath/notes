@@ -50,6 +50,10 @@ export const useGatewayStore = defineStore("gateway", () => {
     });
   }
 
+  function disconnect() {
+    if (ws.value) ws.value.close();
+  }
+
   function send(msg: ServerBound) {
     if (ws.value && ws.value.readyState == WebSocket.OPEN)
       ws.value.send(JSON.stringify(msg));
@@ -75,6 +79,7 @@ export const useGatewayStore = defineStore("gateway", () => {
   return {
     ws,
     connect,
+    disconnect,
     send,
     on,
   };
