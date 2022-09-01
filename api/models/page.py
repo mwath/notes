@@ -83,7 +83,7 @@ class Page(BaseModel):
 
     @staticmethod
     async def is_archived(page_id: int) -> bool:
-        return not db.fetch_val(select(DBPage.active).where(DBPage.id == page_id))
+        return not await db.fetch_val(select(DBPage.active).where(DBPage.id == page_id))
 
     @classmethod
     def exists(cls, page_id: int) -> Awaitable[bool]:
