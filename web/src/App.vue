@@ -1,10 +1,10 @@
 <template>
   <v-app :theme="$theme.scheme">
-    <v-navigation-drawer v-if="$user.user" app permanent>
+    <v-navigation-drawer v-if="user" app permanent>
       <v-list>
-        <v-list-item :title="$user.user.username" :subtitle="$user.user.email">
+        <v-list-item :title="user.username" :subtitle="user.email">
           <template #prepend>
-            <avatar color="primary" :name="$user.user.username" />
+            <avatar color="primary" :name="user.username" />
           </template>
         </v-list-item>
       </v-list>
@@ -27,7 +27,7 @@
       <v-list nav density="compact">
         <v-list-item
           v-for="page in $pages.pages.filter(
-            (page) => page.author == $user.user?.id && page.active
+            (page) => page.author == user?.id && page.active
           )"
           :key="page.id"
           :title="page.title"
@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, toRef, watch } from "vue";
 import { RouterView, useRouter } from "vue-router";
 import { Page, getPageUrl, usePageStore } from "./stores/page";
 import { useThemeStore } from "./stores/theme";
@@ -67,6 +67,7 @@ const $theme = useThemeStore();
 const $pages = usePageStore();
 const $live = useGatewayStore();
 const router = useRouter();
+const user = toRef($user, "user");
 
 $live.connect();
 
@@ -85,9 +86,13 @@ const create = async () => {
   }
 };
 
-onMounted(() => {
-  $pages.list_pages();
+watch(user, (val) => {
+  if (val) {
+    $pages.list_pages();
+    $live.connect();
+  }
 });
+onMounted(() => $pages.list_pages);
 </script>
 
 <style>
