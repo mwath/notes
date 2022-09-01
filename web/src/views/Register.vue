@@ -88,12 +88,14 @@
 
 <script lang="ts" setup>
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 import { register as registerInit } from "../composables/api/auth/register";
 
 const email = ref("");
 const username = ref("");
 const password = ref("");
 const loading = ref(false);
+const $router = useRouter();
 
 const EMAIL_PATTERN =
   /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -128,7 +130,7 @@ function register() {
     password: password.value,
   }).then(() => {
     loading.value = false;
-    console.log(data.value);
+    $router.push("/login");
   });
 }
 </script>
