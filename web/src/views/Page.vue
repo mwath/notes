@@ -145,8 +145,14 @@ watch(error, (value) => {
 });
 
 watch(page, (value) => {
-  if (!value || value.title === titleElement.value?.innerText) return;
-  titleElement.value!.innerText = value.title;
+  if (!titleElement.value) return;
+  if (!value || value.title === titleElement.value.innerText) return;
+  titleElement.value.innerText = value.title;
+});
+
+watch(titleElement, (newval, oldval) => {
+  if (oldval === null && newval && page.value)
+    newval.innerText = page.value.title;
 });
 
 async function fetchPage() {
