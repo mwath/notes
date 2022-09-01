@@ -1,7 +1,14 @@
 <template>
   <NotFound v-if="notfound" />
-  <v-container v-else>
-    <v-row no-gutters>
+  <v-container v-else-if="showSettings">
+    <v-row class="my-4" justify="space-between">
+      <v-btn
+        prepend-icon="mdi-subdirectory-arrow-left"
+        @click="showSettings = !showSettings"
+      >
+        Retour à l'édition
+      </v-btn>
+
       <v-btn
         v-if="page"
         variant="outlined"
@@ -16,11 +23,44 @@
         {{ page?.active ? "Archiver" : "Désarchiver" }}
       </v-btn>
     </v-row>
+    <v-row class="my-4">
+      <v-card width="100%" v-if="page">
+        <v-card-title class="text-center">{{ page.title }}</v-card-title>
+        <v-card-text>
+          <v-table>
+            <thead>
+              <tr>
+                <th>Auteur</th>
+                <th>Dernière édition</th>
+                <th>Date de création</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>
+                  {{ $user.getUser(page.author).value.username }}
+                </th>
+                <th>{{ moment(page.edited).fromNow() }}</th>
+                <th>{{ moment(page.created).fromNow() }}</th>
+              </tr>
+            </tbody>
+          </v-table>
+        </v-card-text>
+      </v-card>
+    </v-row>
+  </v-container>
+  <v-container v-else>
     <v-row no-gutters>
       <div style="width: 100%">
         <div class="ce-block__content">
+          <v-icon
+            class="gutter"
+            icon="mdi-pencil"
+            @click="showSettings = !showSettings"
+          />
           <h1
             class="ce-header"
+            style="display: inline-block"
             contenteditable
             ref="titleElement"
             @blur="updateTitle"
@@ -36,6 +76,14 @@
   </v-container>
 </template>
 
+<style scoped>
+.gutter {
+  margin-left: -20px;
+  padding-bottom: 10px;
+  padding-right: 20px;
+}
+</style>
+
 <script lang="ts" setup>
 import Editor from "@/components/Editor.vue";
 import { Block, useBlockStore } from "$/block";
@@ -45,10 +93,13 @@ import { useRoute } from "vue-router";
 import { useToast } from "vue-toastification";
 import NotFound from "../components/NotFound.vue";
 import { isRefNotUndefined } from "../composables/ref_undefined";
+import moment from "moment";
+import { useUserStore } from "@/stores/user";
 
 const toast = useToast();
 const $page = usePageStore();
 const $block = useBlockStore();
+const $user = useUserStore();
 const route = useRoute();
 const params = computed(() => route.params as { id: string; title?: string });
 
@@ -56,6 +107,7 @@ const page = toRef($page, "current");
 const blocks = ref<Block[]>();
 const error = ref<string>();
 const notfound = ref(false);
+const showSettings = ref(false);
 const titleElement = ref<HTMLElement>();
 
 function updateTitle() {
@@ -108,6 +160,7 @@ async function fetchPage() {
 
 watch(params, (val, old) => {
   if (!val.id || val.id === old.id) return;
+  showSettings.value = false;
   fetchPage();
 });
 onMounted(fetchPage);
