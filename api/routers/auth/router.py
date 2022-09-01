@@ -15,9 +15,9 @@ from .login import (
     is_connected,
     is_connected_pass,
     login,
-    logout,
-    oauth2_scheme,
 )
+from .login import logout as _logout
+from .login import oauth2_scheme
 
 __all__ = ["router"]
 
@@ -70,7 +70,7 @@ async def authenticate(response: Response, form_data: OAuth2PasswordRequestForm 
 
 @router.post("/logout", response_model=SuccessModel)
 async def logout(response: Response):
-    return SuccessModel(success=logout(response))
+    return SuccessModel(success=_logout(response))
 
 
 @router.get("/2fa/new", response_model=Create2FA)
