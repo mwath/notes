@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from api.models import User, UserCreation, UserPass
 from api.routers.auth import Code2FA, hash_password
-from api.routers.auth.login import is_connected_pass
+from api.routers.auth.login import is_connected, is_connected_pass
 
 router = APIRouter(
     prefix="/users",
@@ -40,7 +40,7 @@ async def delete_me(twofa: Code2FA, user: UserPass = Depends(is_connected_pass))
     return await user.delete()
 
 
-@router.get("/{id}", response_model=User)
+@router.get("/{id}", response_model=User, dependencies=[Depends(is_connected)])
 async def get_user(id: int) -> User:
     """Return a user's info from its id"""
     if user := await User.get(id):

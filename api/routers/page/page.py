@@ -9,8 +9,8 @@ router = APIRouter(tags=["page"])
 
 
 @router.get("s", response_model=list[Page])
-async def get_pages(user: User = Depends(is_connected)) -> Page:
-    return await Page.get_all(user)
+async def get_pages(only_me: bool = False, user: User = Depends(is_connected)) -> Page:
+    return await Page.get_all(user if only_me else None)
 
 
 @router.get("/{page_id}", response_model=Page)

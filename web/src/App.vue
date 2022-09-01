@@ -22,7 +22,7 @@
       <v-divider />
       <v-list nav density="compact">
         <v-list-item
-          v-for="page in $pages.pages"
+          v-for="page in $pages.pages.filter(page => page.author == $user.user?.id)"
           :key="page.id"
           :title="page.title"
           :to="getPageUrl(page)"

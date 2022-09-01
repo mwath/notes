@@ -111,9 +111,12 @@ class Page(BaseModel):
             return cls(**page)
 
     @classmethod
-    async def get_all(cls, author: User) -> list[Page]:
+    async def get_all(cls, author: User | None) -> list[Page]:
         """Return a list of all pages created by a user"""
-        query = select(DBPage).where(DBPage.author == author.id)
+        query = select(DBPage)
+        if author is not None:
+            query = query.where(DBPage.author == author.id)
+
         return [cls(**u) for u in await db.fetch_all(query)]
 
     @classmethod

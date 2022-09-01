@@ -96,7 +96,9 @@ export const usePageStore = defineStore("page", () => {
 
   async function list_pages() {
     try {
-      let result = await requests.get<Page[]>("/pages");
+      let result = await requests.get<Page[]>("/pages", {
+        params: { only_me: false },
+      });
       pages.splice(0, pages.length);
       pages.push(...result.data);
     } catch (err: any) {}
