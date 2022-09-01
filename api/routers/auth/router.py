@@ -50,7 +50,7 @@ async def authenticate(response: Response, form_data: OAuth2PasswordRequestForm 
     if user is None or not cryptctx.verify(form_data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="Nom d'utilisateur ou mot de passe incorrect",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

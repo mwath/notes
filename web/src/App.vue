@@ -10,10 +10,14 @@
       </v-list>
       <v-divider />
       <v-list nav density="compact">
-        <v-list-item title="Home" prepend-icon="mdi-home" to="/" />
-        <v-list-item title="Search" prepend-icon="mdi-magnify" to="/search" />
+        <v-list-item title="Accueil" prepend-icon="mdi-home" to="/" />
         <v-list-item
-          title="New Page"
+          title="Rechercher"
+          prepend-icon="mdi-magnify"
+          to="/search"
+        />
+        <v-list-item
+          title="Nouvelle Page"
           prepend-icon="mdi-plus"
           @click="create()"
           :disabled="loading"
@@ -22,7 +26,9 @@
       <v-divider />
       <v-list nav density="compact">
         <v-list-item
-          v-for="page in $pages.pages.filter(page => page.author == $user.user?.id)"
+          v-for="page in $pages.pages.filter(
+            (page) => page.author == $user.user?.id
+          )"
           :key="page.id"
           :title="page.title"
           :to="getPageUrl(page)"
@@ -32,7 +38,11 @@
       <template #append>
         <v-divider />
         <v-list nav density="compact">
-          <v-list-item title="Settings" prepend-icon="mdi-cog" to="/settings" />
+          <v-list-item
+            title="Paramètres"
+            prepend-icon="mdi-cog"
+            to="/settings"
+          />
         </v-list>
       </template>
     </v-navigation-drawer>

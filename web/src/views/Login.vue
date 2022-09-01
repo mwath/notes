@@ -29,7 +29,7 @@
                     <v-text-field
                       v-model="password"
                       type="password"
-                      label="Password"
+                      label="Mot de passe"
                       required
                       hide-details="auto"
                     />

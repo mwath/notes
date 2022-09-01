@@ -54,12 +54,12 @@ def decode(token: str) -> tuple[bool, str]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         if (expires := payload.get("exp")) is None or (subject := payload.get("sub")) is None:
-            raise InvalidToken("This token is invalid.")
+            raise InvalidToken("Ce token est invalide.")
 
         if datetime.fromtimestamp(expires) < datetime.now():
-            raise ExpiredToken("This token has expired.")
+            raise ExpiredToken("Ce token à expiré.")
     except JWTError:
-        raise InvalidToken("This token is invalid.")
+        raise InvalidToken("Ce token est invalide.")
 
     if payload.get("2fa", False):
         return True, subject

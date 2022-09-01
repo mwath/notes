@@ -29,7 +29,7 @@ async def add_block(page_id: int, block_id: BlockId, block: BlockCreation) -> Bl
     except PageNotFound as e:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(e))
     except ForeignKeyViolationError:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "This page does not exists")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Cette page n'existe pas")
 
 
 @router.put("/block/{block_id}", response_model=Block)

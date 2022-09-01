@@ -30,7 +30,7 @@ class OAuth2Cookies(OAuth2):
             if self.auto_error:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Could not validate credentials",
+                    detail="Impossible de valider le token",
                     headers={"WWW-Authenticate": "Bearer"},
                 )
             else:
