@@ -1,5 +1,5 @@
 from ...client import Channel, Client
-from ..clientbound.channel import ChannelNotFound, JoinedChannel, LeftChannel
+from ..clientbound.channel import ChannelNotFound
 from .base import ServerBoundMessage
 from .register import register
 

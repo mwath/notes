@@ -77,6 +77,7 @@ class MessageModel(BaseModel):
     data: dict
 
 
+
 class Client:
     def __init__(self, ws: WebSocket, user: User, cid: int = 0, channel: Channel | None = None):
         self.ws = ws
