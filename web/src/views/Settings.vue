@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container id="settings">
     <v-row justify="center">
       <v-divider />
       <h2>Thème</h2>
@@ -223,32 +223,39 @@
       <h2>Pages archivées</h2>
       <v-divider />
     </v-row>
-      <v-table>
-        <thead>
-          <tr>
-            <th>Auteur</th>
-            <th>Titre</th>
-            <th>Dernière édition</th>
-            <th>Date de création</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="page in $page.pages.filter((page) => !page.active)"
-            :key="page.id"
-            @click="$router.push(getPageUrl(page))"
-          >
-            <th>
-              {{ $user.getUser(page.author).value.username }}
-            </th>
-            <th>{{ page.title }}</th>
-            <th>{{ moment(page.edited).fromNow() }}</th>
-            <th>{{ moment(page.created).fromNow() }}</th>
-          </tr>
-        </tbody>
-      </v-table>
+    <v-table>
+      <thead>
+        <tr>
+          <th>Auteur</th>
+          <th>Titre</th>
+          <th>Dernière édition</th>
+          <th>Date de création</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="page in $page.pages.filter((page) => !page.active)"
+          :key="page.id"
+          @click="$router.push(getPageUrl(page))"
+        >
+          <th>
+            {{ $user.getUser(page.author).value.username }}
+          </th>
+          <th>{{ page.title }}</th>
+          <th>{{ moment(page.edited).fromNow() }}</th>
+          <th>{{ moment(page.created).fromNow() }}</th>
+        </tr>
+      </tbody>
+    </v-table>
   </v-container>
 </template>
+
+<style scoped>
+#settings {
+  max-width: 1000px;
+  padding: 20px;
+}
+</style>
 
 <script lang="ts" setup>
 import { useUserStore } from "$/user";
